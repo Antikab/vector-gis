@@ -1,0 +1,74 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+/* Общие стили для таблицы */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 16px;
+  text-align: left;
+}
+
+/* Стилизация заголовков таблицы */
+th {
+  background-color: #4CAF50; /* Зеленый цвет для заголовка */
+  color: white;
+  padding: 12px 15px;
+  border-bottom: 2px solid #ddd;
+}
+
+/* Стилизация ячеек таблицы */
+td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Альтернативные цвета для строк таблицы */
+tr:nth-child(even) {
+  background-color: #f9f9f9; /* Легкий серый оттенок */
+}
+
+/* Стилизация строк при наведении */
+tr:hover {
+  background-color: #f1f1f1; /* Еще более светлый серый оттенок */
+  transition: background-color 0.3s ease; /* Плавный переход */
+}
+
+/* Стилизация кнопок и ссылок в таблице */
+button, a {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease; /* Плавный переход */
+}
+
+button:hover, a:hover {
+  background-color: #45a049;
+  transform: scale(1.05); /* Легкое увеличение кнопки */
+}
+
+/* Добавляем стили для заголовка и текста внутри таблицы */
+h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+p {
+  font-size: 18px;
+}
+
+tr.red {
+  background-color: rgba(255, 0, 0, 0.3);
+}
