@@ -5,6 +5,12 @@
   text-align: center;
 }
 
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  row-gap: 20px;
+}
+
 /* Общие стили для таблицы */
 table {
   width: 100%;
@@ -71,4 +77,30 @@ p {
 
 tr.red {
   background-color: rgba(255, 0, 0, 0.3);
+}
+
+.accordion-item {
+  min-width: 1024px;
+  margin-top: 30px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.accordion-header {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.accordion-header h2 {
+  margin: 0;
+}
+
+.sort-icon {
+  margin-left: 10px;
+  font-size: 14px;
 }
