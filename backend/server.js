@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import axios from 'axios';
-import { data as apiData } from './data/f_data.js';
+import { data as apiData } from './data/data.js';
 import axiosRetry from 'axios-retry';
 
 axiosRetry(axios, {
@@ -43,74 +43,77 @@ app.get('/api/getToken', (req, res) => {
 });
 
 app.get('/api/layers', async (req, res) => {
-  const currentDate = new Date().toLocaleString('ru-RU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  });
-
-  // Если на сегодня уже есть данные в кеше, возвращаем их
-  if (cache[currentDate]) {
-    return res.json(cache[currentDate]);
-  }
-
-  let data = [...apiData];
-
   try {
+    const data = [...apiData];
+
     const results = await Promise.all(
-      data.map(async item => {
+      data.map(async (item) => {
         const url = `http://vector.mka.mos.ru/api/2.8/orbis/${item.nameservice}/layers/${item.code}/?with_timestamp=1`;
 
         try {
           const response = await axios.get(url);
+
           if (response.data?.timestamp) {
-            return {
+            const formattedDate = new Date(response.data.timestamp * 1000).toLocaleDateString('ru-RU', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+            });
+
+            const previousEntry = cache[formattedDate]?.find(
+              (entry) => entry.code === item.code && entry.nameservice === item.nameservice
+            );
+
+            let lastUpdated = null;
+
+            // Если есть предыдущий timestamp и он отличается от нового, сохраняем его в lastUpdated
+            if (previousEntry && previousEntry.timestamp !== response.data.timestamp) {
+              lastUpdated = previousEntry.timestamp;
+            }
+
+            const updatedLayer = {
               ...item,
               id: response.data.id,
-              timestamp: response.data.timestamp,
-              lastUpdated: currentDate, // Добавляем дату последнего обновления
+              timestamp: response.data.timestamp, // Сегодняшний timestamp
+              lastUpdated: lastUpdated, // Предыдущий timestamp, если он был
             };
+
+            // Сохраняем результаты в кэш для даты сканирования
+            if (!cache[formattedDate]) {
+              cache[formattedDate] = [];
+            }
+            cache[formattedDate].push(updatedLayer);
+
+            return updatedLayer;
           } else {
-            console.error(
-              `В ответе по ${item.nameservice}/${item.code} не найден "timestamp"`
-            );
+            console.error(`В ответе по ${item.nameservice}/${item.code} не найден "timestamp"`);
             return null;
           }
         } catch (err) {
           if (err.response && err.response.status === 404) {
-            console.warn(
-              `Ресурс не найден для ${item.nameservice}/${item.code}: ${err.message}`
-            );
+            console.warn(`Ресурс не найден для ${item.nameservice}/${item.code}: ${err.message}`);
             return {
               ...item,
               timestamp: false,
-              lastUpdated: currentDate, // Добавляем дату последнего обновления
+              lastUpdated: null,
             };
           } else {
-            console.error(
-              `Ошибка при запросе данных для ${item.nameservice}/${item.code}: ${err}`
-            );
+            console.error(`Ошибка при запросе данных для ${item.nameservice}/${item.code}: ${err}`);
             return null;
           }
         }
       })
     );
 
-    const filteredResults = results.filter(result => result !== null);
-
-    // Сохраняем результаты в кеше для текущей даты
-    cache[currentDate] = filteredResults;
-    console.log(`Данные сохранены в кэш для даты: ${currentDate}`);
-
+    const filteredResults = results.filter((result) => result !== null);
     res.json(filteredResults);
   } catch (err) {
     console.error('Error fetching data:', err);
     res.status(500).json({ error: 'Не удалось получить данные' });
   }
 });
+
+
 
 app.get('/api/cachedLayers', (req, res) => {
   const currentDate = new Date().toLocaleDateString('ru-RU', options);

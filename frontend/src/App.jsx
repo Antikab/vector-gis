@@ -14,21 +14,14 @@ function App() {
       return 'время - неизвестно';
     }
     const date = new Date(timestamp * 1000);
-    return date.toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' });
-  };
-
-  const fetchCache = async () => {
-    setLayers([]);
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await axios.get('http://localhost:3007/api/cachedLayers');
-      setLayers(response.data);
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
+    return date.toLocaleString('ru-RU', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
   };
 
   const fetchData = async () => {
@@ -89,7 +82,6 @@ function App() {
 
   useEffect(() => {
     fetchData();
-    fetchCache();
   }, []);
 
   if (loading) return <p>Loading...</p>;
@@ -100,9 +92,6 @@ function App() {
       <h1>Информация о слоях</h1>
       <button className="btn" onClick={() => fetchData()}>
         Обновить слои
-      </button>
-      <button className="btn" onClick={() => fetchCache()}>
-        Обновить кэш
       </button>
       {Object.keys(groupedLayers).length === 0 ? (
         <p>No layers available.</p>
@@ -137,7 +126,7 @@ function App() {
                         <td>{layer.code}</td>
                         <td>{layer.name}</td>
                         <td>{convertTimestampToDate(layer.timestamp)}</td>
-                        <td>{layer.lastUpdated || 'Неизвестно'}</td> {/* Вывод актуальной даты */}
+                        <td>{layer.lastUpdated ? convertTimestampToDate(layer.lastUpdated) : 'Нет данных'}</td>
                       </tr>
                     ))}
                   </tbody>
