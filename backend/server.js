@@ -1,10 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import axios from 'axios';
-// import { data as apiData } from './data/data.js';
 import { data as apiData } from './data/f_data.js';
 import axiosRetry from 'axios-retry';
-
 
 axiosRetry(axios, {
   retries: 1,
@@ -16,7 +14,12 @@ const port = 3007;
 
 let cache = {}; // Объект для хранения кеша по датам
 let token = '';
-const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+const options = {
+  weekday: 'long',
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+};
 
 app.use(cors());
 app.use(express.json());
@@ -40,7 +43,14 @@ app.get('/api/getToken', (req, res) => {
 });
 
 app.get('/api/layers', async (req, res) => {
-  const currentDate = new Date().toLocaleDateString('ru-RU', options);
+  const currentDate = new Date().toLocaleString('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
 
   // Если на сегодня уже есть данные в кеше, возвращаем их
   if (cache[currentDate]) {
@@ -61,6 +71,7 @@ app.get('/api/layers', async (req, res) => {
               ...item,
               id: response.data.id,
               timestamp: response.data.timestamp,
+              lastUpdated: currentDate, // Добавляем дату последнего обновления
             };
           } else {
             console.error(
@@ -76,6 +87,7 @@ app.get('/api/layers', async (req, res) => {
             return {
               ...item,
               timestamp: false,
+              lastUpdated: currentDate, // Добавляем дату последнего обновления
             };
           } else {
             console.error(
@@ -88,7 +100,7 @@ app.get('/api/layers', async (req, res) => {
     );
 
     const filteredResults = results.filter(result => result !== null);
-    
+
     // Сохраняем результаты в кеше для текущей даты
     cache[currentDate] = filteredResults;
     console.log(`Данные сохранены в кэш для даты: ${currentDate}`);

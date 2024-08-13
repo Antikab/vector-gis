@@ -30,6 +30,7 @@ function App() {
       setLoading(false);
     }
   };
+
   const fetchData = async () => {
     setLayers([]);
     setLoading(true);
@@ -88,7 +89,7 @@ function App() {
 
   useEffect(() => {
     fetchData();
-    fetchCache()
+    fetchCache();
   }, []);
 
   if (loading) return <p>Loading...</p>;
@@ -106,14 +107,12 @@ function App() {
       {Object.keys(groupedLayers).length === 0 ? (
         <p>No layers available.</p>
       ) : (
-        <div className='wrapper'>
+        <div className="wrapper">
           {Object.keys(groupedLayers).map((serviceName) => (
             <div key={serviceName} className="accordion-item">
               <div className="accordion-header" onClick={() => toggleService(serviceName)}>
                 <h2>{serviceName}</h2>
-              
-                  {expandedServices[serviceName] ? '▲' : '▼'}
-           
+                {expandedServices[serviceName] ? '▲' : '▼'}
               </div>
               {expandedServices[serviceName] && (
                 <table>
@@ -121,7 +120,7 @@ function App() {
                     <tr>
                       <th>Название кода</th>
                       <th>Название слоя</th>
-                      <th className="data-scan" onClick={() => handleSort(serviceName)}>
+                      <th onClick={() => handleSort(serviceName)}>
                         <div className="sort-button">
                           Дата сканирования{' '}
                           <button className={`sort-icon ${sortOrders[serviceName]}`}>
@@ -129,6 +128,7 @@ function App() {
                           </button>
                         </div>
                       </th>
+                      <th>Актуальная дата сканирования</th> {/* Новая колонка */}
                     </tr>
                   </thead>
                   <tbody>
@@ -137,6 +137,7 @@ function App() {
                         <td>{layer.code}</td>
                         <td>{layer.name}</td>
                         <td>{convertTimestampToDate(layer.timestamp)}</td>
+                        <td>{layer.lastUpdated || 'Неизвестно'}</td> {/* Вывод актуальной даты */}
                       </tr>
                     ))}
                   </tbody>
