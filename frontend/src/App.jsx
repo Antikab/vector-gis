@@ -4,6 +4,7 @@ import './App.css';
 
 function App() {
   const [mapsData, setMapsData] = useState({});
+  const [yesterdayMapsData, setYesterdayMapsData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sortOrders, setSortOrders] = useState({});
@@ -12,17 +13,39 @@ function App() {
     method: 'get',
     maxBodyLength: Infinity,
     url: 'http://glavapu-services:3009/todayCache',
+    // url: 'http://172.18.204.214:3009/todayCache',
+    
+    headers: {},
+  };
+
+  const fetchYesterdayDataConfig = {
+    method: 'get',
+    maxBodyLength: Infinity,
+    url: 'http://glavapu-services:3009/yesterdayCache',
+    // url: 'http://172.18.204.214:3009/yesterdayCache',
     headers: {},
   };
 
   useEffect(() => {
     fetchData();
+    fetchDataYesterday();
   }, []);
 
   const fetchData = async () => {
     try {
       const response = await axios.request(fetchDataConfig);
       setMapsData(response.data);
+      setLoading(false);
+    } catch (error) {
+      setError('Ошибка загрузки данных');
+      setLoading(false);
+    }
+  };
+
+  const fetchDataYesterday = async () => {
+    try {
+      const response = await axios.request(fetchYesterdayDataConfig);
+      setYesterdayMapsData(response.data);
       setLoading(false);
     } catch (error) {
       setError('Ошибка загрузки данных');
@@ -94,33 +117,31 @@ function App() {
                     <tr>
                       <th>Название слоя</th>
                       <th>Название кода</th>
-                      <th>
-                        <div className='wrapper-date'>
-                          <span>Дата кэша</span>
-                          {hasValidTimestamp && mapsData[mapKey].length > 2 && (
-                            <button
-                              className={`sort-icon ${sortOrders[mapKey]}`}
-                              onClick={() => handleSort(mapKey)}
-                            >
-                              {sortOrders[mapKey] === 'asc' ? '↑' : '↓'}
-                            </button>
-                          )}
-                        </div>
-                      </th>
+                      <th>Дата кэша (сегодня)</th>
+                      <th>Дата кэша (вчера)</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {mapsData[mapKey].map(layer => (
-                      <tr key={layer.id || `${mapKey}-${layer.code}`}>
-                        <td>{layer.name || 'Без названия'}</td>
-                        <td className={layer.type === 'folder' ? 'folder' : ''}>
-                          {layer.code}
-                        </td>
-                        <td className={!layer.timestamp ? 'red' : ''}>
-                          {convertTimestampToDate(layer.timestamp)}
-                        </td>
-                      </tr>
-                    ))}
+                    {mapsData[mapKey].map(layer => {
+                      const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
+                        yesterdayLayer => yesterdayLayer.code === layer.code
+                      );
+
+                      return (
+                        <tr key={layer.id || `${mapKey}-${layer.code}`}>
+                          <td>{layer.name || 'Без названия'}</td>
+                          <td className={layer.type === 'folder' ? 'folder' : ''}>
+                            {layer.code}
+                          </td>
+                          <td className={!layer.timestamp ? 'red' : ''}>
+                            {convertTimestampToDate(layer.timestamp)}
+                          </td>
+                          <td className={!yesterdayLayer?.timestamp ? 'red' : ''}>
+                            {convertTimestampToDate(yesterdayLayer?.timestamp)}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
