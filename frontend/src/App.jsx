@@ -13,7 +13,7 @@ function App() {
     method: 'get',
     maxBodyLength: Infinity,
     url: 'http://glavapu-services:3009/todayCache',
-    headers: {}
+    headers: {},
   };
 
   useEffect(() => {
@@ -22,9 +22,7 @@ function App() {
 
   const fetchData = async () => {
     try {
-      // Выполнение запроса с использованием конфигурации
       const response = await axios.request(fetchDataConfig);
-      // Устанавливаем данные из ответа
       setMapsData(response.data);
       setLoading(false);
     } catch (error) {
@@ -33,7 +31,7 @@ function App() {
     }
   };
 
-  const convertTimestampToDate = (timestamp) => {
+  const convertTimestampToDate = timestamp => {
     if (!timestamp || timestamp === 0) {
       return 'время - неизвестно';
     }
@@ -48,7 +46,7 @@ function App() {
     });
   };
 
-  const handleSort = (mapKey) => {
+  const handleSort = mapKey => {
     const currentOrder = sortOrders[mapKey] || 'asc';
     const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
 
@@ -60,12 +58,12 @@ function App() {
         : b.timestamp - a.timestamp;
     });
 
-    setSortOrders((prevSortOrders) => ({
+    setSortOrders(prevSortOrders => ({
       ...prevSortOrders,
       [mapKey]: newOrder,
     }));
 
-    setMapsData((prevMapsData) => ({
+    setMapsData(prevMapsData => ({
       ...prevMapsData,
       [mapKey]: sortedLayers,
     }));
@@ -77,42 +75,43 @@ function App() {
   return (
     <div className="App">
       <h1>Информация о слоях по картам</h1>
-        {Object.keys(mapsData).length === 0 ? (
+      {Object.keys(mapsData).length === 0 ? (
         <p>No layers available.</p>
       ) : (
-        Object.keys(mapsData).map((mapKey) => (
-          <div key={mapKey} className="map-section">
-            <h2>{mapKey}</h2>
-            <table>
-              <thead>
-                <tr>
-                  <th>Название слоя</th>
-                  <th>Название кода</th>
-                  <th className="data-scan" onClick={() => handleSort(mapKey)}>
-                    <div className="sort-button">
-                      Дата кэша{' '}
-                      <button className={`sort-icon ${sortOrders[mapKey]}`}>
-                        {sortOrders[mapKey] === 'asc'
-                          ? '↑'
-                          : sortOrders[mapKey] === 'desc'
-                          ? '↓'
-                          : '↕'}
-                      </button>
-                    </div>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {mapsData[mapKey].map((layer) => (
-                  <tr key={layer.id || `${mapKey}-${layer.code}`} className={!layer.timestamp ? 'red' : ''}>
-                    <td>{layer.name || 'Без названия'}</td>
-                    <td>{layer.code}</td>
-                    <td>{convertTimestampToDate(layer.timestamp)}</td>
+        Object.keys(mapsData).map(mapKey => (
+          <details key={mapKey} className="accordion-item">
+            <summary className="accordion-header">
+              <h2>{mapKey}</h2>
+              <button
+                className={`sort-icon ${sortOrders[mapKey]}`}
+                onClick={() => handleSort(mapKey)}
+              >
+                Дата кэша {sortOrders[mapKey] === 'asc' ? '↑' : '↓'}
+              </button>
+            </summary>
+            <div className="accordion-content">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Название слоя</th>
+                    <th>Название кода</th>
+                    <th>Дата кэша</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {mapsData[mapKey].map(layer => (
+                    <tr key={layer.id || `${mapKey}-${layer.code}`}>
+                      <td>{layer.name || 'Без названия'}</td>
+                      <td>{layer.code}</td>
+                      <td className={!layer.timestamp ? 'red' : ''}>
+                        {convertTimestampToDate(layer.timestamp)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
         ))
       )}
     </div>

@@ -1,3 +1,4 @@
+/* App.css */
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -75,12 +76,11 @@ p {
   font-size: 18px;
 }
 
-tr.red {
+td.red {
   background-color: rgba(255, 0, 0, 0.3);
 }
 
 .accordion-item {
-  min-width: 1024px;
   margin-top: 30px;
   border: 1px solid #ddd;
   border-radius: 4px;
@@ -103,4 +103,8 @@ tr.red {
 .sort-icon {
   margin-left: 10px;
   font-size: 14px;
+}
+
+.accordion-content {
+  padding: 10px;
 }
