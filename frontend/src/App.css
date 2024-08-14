@@ -1,4 +1,3 @@
-/* App.css */
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -12,7 +11,6 @@
   row-gap: 20px;
 }
 
-/* Общие стили для таблицы */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -21,32 +19,27 @@ table {
   text-align: left;
 }
 
-/* Стилизация заголовков таблицы */
 th {
-  background-color: #4CAF50; /* Зеленый цвет для заголовка */
+  background-color: #4CAF50;
   color: white;
   padding: 12px 15px;
   border-bottom: 2px solid #ddd;
 }
 
-/* Стилизация ячеек таблицы */
 td {
   padding: 12px 15px;
   border-bottom: 1px solid #ddd;
 }
 
-/* Альтернативные цвета для строк таблицы */
 tr:nth-child(even) {
-  background-color: #f9f9f9; /* Легкий серый оттенок */
+  background-color: #f9f9f9;
 }
 
-/* Стилизация строк при наведении */
 tr:hover {
-  background-color: #f1f1f1; /* Еще более светлый серый оттенок */
-  transition: background-color 0.3s ease; /* Плавный переход */
+  background-color: #f1f1f1;
+  transition: background-color 0.3s ease;
 }
 
-/* Стилизация кнопок и ссылок в таблице */
 button, a {
   background-color: #4CAF50;
   color: white;
@@ -58,15 +51,14 @@ button, a {
   font-size: 14px;
   border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.3s ease; /* Плавный переход */
+  transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 button:hover, a:hover {
   background-color: #45a049;
-  transform: scale(1.05); /* Легкое увеличение кнопки */
+  transform: scale(1.05);
 }
 
-/* Добавляем стили для заголовка и текста внутри таблицы */
 h1 {
   font-size: 24px;
   margin-bottom: 20px;
@@ -80,10 +72,16 @@ td.red {
   background-color: rgba(255, 0, 0, 0.3);
 }
 
+td.folder {
+  background-color: rgba(255, 187, 0, 0.3);
+}
+
+/* Стили для аккордеона */
 .accordion-item {
   margin-top: 30px;
   border: 1px solid #ddd;
   border-radius: 4px;
+  overflow: hidden; /* скрываем контент при сворачивании */
 }
 
 .accordion-header {
@@ -94,17 +92,32 @@ td.red {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: background-color 0.3s ease;
 }
 
 .accordion-header h2 {
   margin: 0;
 }
 
-.sort-icon {
+.accordion-header .arrow {
   margin-left: 10px;
-  font-size: 14px;
+  transition: transform 0.3s ease; /* плавный поворот стрелки */
 }
 
+/* Поворот стрелки при раскрытии */
+.accordion-item[open] .accordion-header .arrow {
+  transform: rotate(180deg);
+}
+
+/* Плавное раскрытие контента */
 .accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s ease-out, padding 0.5s ease-out;
+  padding: 0 10px; /* убираем отступы при закрытии */
+}
+
+.accordion-item[open] .accordion-content {
+  max-height: 500px; /* максимальная высота контента при раскрытии */
   padding: 10px;
 }

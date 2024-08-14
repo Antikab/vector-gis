@@ -8,7 +8,6 @@ function App() {
   const [error, setError] = useState(null);
   const [sortOrders, setSortOrders] = useState({});
 
-  // Конфигурация запроса
   const fetchDataConfig = {
     method: 'get',
     maxBodyLength: Infinity,
@@ -78,41 +77,56 @@ function App() {
       {Object.keys(mapsData).length === 0 ? (
         <p>No layers available.</p>
       ) : (
-        Object.keys(mapsData).map(mapKey => (
-          <details key={mapKey} className="accordion-item">
-            <summary className="accordion-header">
-              <h2>{mapKey}</h2>
-              <button
-                className={`sort-icon ${sortOrders[mapKey]}`}
-                onClick={() => handleSort(mapKey)}
-              >
-                Дата кэша {sortOrders[mapKey] === 'asc' ? '↑' : '↓'}
-              </button>
-            </summary>
-            <div className="accordion-content">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Название слоя</th>
-                    <th>Название кода</th>
-                    <th>Дата кэша</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {mapsData[mapKey].map(layer => (
-                    <tr key={layer.id || `${mapKey}-${layer.code}`}>
-                      <td>{layer.name || 'Без названия'}</td>
-                      <td>{layer.code}</td>
-                      <td className={!layer.timestamp ? 'red' : ''}>
-                        {convertTimestampToDate(layer.timestamp)}
-                      </td>
+        Object.keys(mapsData).map(mapKey => {
+          const hasValidTimestamp = mapsData[mapKey].some(
+            layer => layer.timestamp
+          );
+
+          return (
+            <details key={mapKey} className="accordion-item">
+              <summary className="accordion-header">
+                <h2>{mapKey}</h2>
+                <span className="arrow">▼</span>
+              </summary>
+              <div className="accordion-content">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Название слоя</th>
+                      <th>Название кода</th>
+                      <th>
+                        <div className='wrapper-date'>
+                          <span>Дата кэша</span>
+                          {hasValidTimestamp && mapsData[mapKey].length > 2 && (
+                            <button
+                              className={`sort-icon ${sortOrders[mapKey]}`}
+                              onClick={() => handleSort(mapKey)}
+                            >
+                              {sortOrders[mapKey] === 'asc' ? '↑' : '↓'}
+                            </button>
+                          )}
+                        </div>
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </details>
-        ))
+                  </thead>
+                  <tbody>
+                    {mapsData[mapKey].map(layer => (
+                      <tr key={layer.id || `${mapKey}-${layer.code}`}>
+                        <td>{layer.name || 'Без названия'}</td>
+                        <td className={layer.type === 'folder' ? 'folder' : ''}>
+                          {layer.code}
+                        </td>
+                        <td className={!layer.timestamp ? 'red' : ''}>
+                          {convertTimestampToDate(layer.timestamp)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          );
+        })
       )}
     </div>
   );

@@ -88,3 +88,9 @@ button.sort-icon {
 .data-scan {
   width: 200px;
 }
+
+
+.wrapper-date {
+  display: flex;
+  justify-content: space-between;
+}
