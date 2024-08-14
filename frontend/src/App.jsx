@@ -5,16 +5,17 @@ import './App.css';
 function App() {
   const [mapsData, setMapsData] = useState({});
   const [yesterdayMapsData, setYesterdayMapsData] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [sortOrders, setSortOrders] = useState({});
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [progress, setProgress] = useState(0);
 
   const fetchDataConfig = {
     method: 'get',
     maxBodyLength: Infinity,
     url: 'http://glavapu-services:3009/todayCache',
     // url: 'http://172.18.204.214:3009/todayCache',
-    
+
     headers: {},
   };
 
@@ -33,23 +34,47 @@ function App() {
 
   const fetchData = async () => {
     try {
+      // Симуляция прогресса загрузки
+      let simulatedProgress = 0;
+      const interval = setInterval(() => {
+        simulatedProgress += 10; // Увеличиваем прогресс на 10% каждые 100ms
+        setProgress(simulatedProgress);
+        if (simulatedProgress >= 100) {
+          clearInterval(interval);
+        }
+      }, 100);
+
       const response = await axios.request(fetchDataConfig);
       setMapsData(response.data);
       setLoading(false);
+      setProgress(100); // Установите прогресс в 100% после успешной загрузки
     } catch (error) {
       setError('Ошибка загрузки данных');
       setLoading(false);
+      setProgress(100); // Установите прогресс в 100% даже в случае ошибки
     }
   };
 
   const fetchDataYesterday = async () => {
     try {
+      // Симуляция прогресса загрузки
+      let simulatedProgress = 0;
+      const interval = setInterval(() => {
+        simulatedProgress += 10; // Увеличиваем прогресс на 10% каждые 100ms
+        setProgress(simulatedProgress);
+        if (simulatedProgress >= 100) {
+          clearInterval(interval);
+        }
+      }, 100);
+
       const response = await axios.request(fetchYesterdayDataConfig);
       setYesterdayMapsData(response.data);
       setLoading(false);
+      setProgress(100); // Установите прогресс в 100% после успешной загрузки
     } catch (error) {
       setError('Ошибка загрузки данных');
       setLoading(false);
+      setProgress(100); // Установите прогресс в 100% даже в случае ошибки
     }
   };
 
@@ -68,16 +93,27 @@ function App() {
     });
   };
 
-  const handleSort = mapKey => {
+  const handleSort = (mapKey, sortBy) => {
     const currentOrder = sortOrders[mapKey] || 'asc';
     const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
 
     const sortedLayers = [...mapsData[mapKey]].sort((a, b) => {
-      if (!a.timestamp) return 1;
-      if (!b.timestamp) return -1;
+      const aTimestamp =
+        sortBy === 'today'
+          ? a.timestamp
+          : yesterdayMapsData[mapKey]?.find(layer => layer.code === a.code)
+              ?.timestamp;
+      const bTimestamp =
+        sortBy === 'today'
+          ? b.timestamp
+          : yesterdayMapsData[mapKey]?.find(layer => layer.code === b.code)
+              ?.timestamp;
+
+      if (!aTimestamp) return 1;
+      if (!bTimestamp) return -1;
       return newOrder === 'asc'
-        ? a.timestamp - b.timestamp
-        : b.timestamp - a.timestamp;
+        ? aTimestamp - bTimestamp
+        : bTimestamp - aTimestamp;
     });
 
     setSortOrders(prevSortOrders => ({
@@ -91,14 +127,20 @@ function App() {
     }));
   };
 
-  if (loading) return <p>Loading...</p>;
+  if (loading)
+    return (
+      <div className="loading-container">
+        <progress value={progress} max="100" />
+        <p>Загрузка слоев... {progress}%</p>
+      </div>
+    );
   if (error) return <p>Error: {error}</p>;
 
   return (
     <div className="App">
-      <h1>Информация о слоях по картам</h1>
+      <h1>Информация о слоях</h1>
       {Object.keys(mapsData).length === 0 ? (
-        <p>No layers available.</p>
+        <p>Нет доступных слоев.</p>
       ) : (
         Object.keys(mapsData).map(mapKey => {
           const hasValidTimestamp = mapsData[mapKey].some(
@@ -117,8 +159,34 @@ function App() {
                     <tr>
                       <th>Название слоя</th>
                       <th>Название кода</th>
-                      <th>Дата кэша (сегодня)</th>
-                      <th>Дата кэша (вчера)</th>
+                      <th>
+                        <div className="wrapper-date">
+                          <span>Дата кэша (сегодня)</span>
+                          {hasValidTimestamp &&
+                            mapsData[mapKey]?.length > 2 && (
+                              <button
+                                className={`sort-icon ${sortOrders[mapKey]}`}
+                                onClick={() => handleSort(mapKey, 'today')}
+                              >
+                                {sortOrders[mapKey] === 'asc' ? '↑' : '↓'}
+                              </button>
+                            )}
+                        </div>
+                      </th>
+                      <th>
+                        <div className="wrapper-date">
+                          <span>Дата кэша (вчера)</span>
+                          {hasValidTimestamp &&
+                            yesterdayMapsData[mapKey]?.length > 2 && (
+                              <button
+                                className={`sort-icon ${sortOrders[mapKey]}`}
+                                onClick={() => handleSort(mapKey, 'yesterday')}
+                              >
+                                {sortOrders[mapKey] === 'asc' ? '↑' : '↓'}
+                              </button>
+                            )}
+                        </div>
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -130,13 +198,17 @@ function App() {
                       return (
                         <tr key={layer.id || `${mapKey}-${layer.code}`}>
                           <td>{layer.name || 'Без названия'}</td>
-                          <td className={layer.type === 'folder' ? 'folder' : ''}>
+                          <td
+                            className={layer.type === 'folder' ? 'folder' : ''}
+                          >
                             {layer.code}
                           </td>
                           <td className={!layer.timestamp ? 'red' : ''}>
                             {convertTimestampToDate(layer.timestamp)}
                           </td>
-                          <td className={!yesterdayLayer?.timestamp ? 'red' : ''}>
+                          <td
+                            className={!yesterdayLayer?.timestamp ? 'red' : ''}
+                          >
                             {convertTimestampToDate(yesterdayLayer?.timestamp)}
                           </td>
                         </tr>

@@ -17,10 +17,11 @@ table {
   margin: 20px 0;
   font-size: 16px;
   text-align: left;
+  transition: background-color 0.3s ease;
 }
 
 th {
-  background-color: #4CAF50;
+  background-color: #4c77af;
   color: white;
   padding: 12px 15px;
   border-bottom: 2px solid #ddd;
@@ -40,40 +41,23 @@ tr:hover {
   transition: background-color 0.3s ease;
 }
 
-button, a {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 14px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.3s ease;
-}
-
-button:hover, a:hover {
-  background-color: #45a049;
-  transform: scale(1.05);
-}
-
 h1 {
-  font-size: 24px;
-  margin-bottom: 20px;
+  font-size: 2rem;
+  line-height: 1.1;
+  transition: color 0.3s ease;
 }
 
 p {
   font-size: 18px;
+  transition: color 0.3s ease;
 }
 
 td.red {
-  background-color: rgba(255, 0, 0, 0.3);
+  background-color: #ff00004d;
 }
 
 td.folder {
-  background-color: rgba(255, 187, 0, 0.3);
+  background-color: #ffbb004d;
 }
 
 /* Стили для аккордеона */
@@ -85,7 +69,7 @@ td.folder {
 }
 
 .accordion-header {
-  background-color: #4CAF50;
+  background-color: #455d7c;
   color: white;
   padding: 10px;
   cursor: pointer;
@@ -95,11 +79,20 @@ td.folder {
   transition: background-color 0.3s ease;
 }
 
+.accordion-header {
+  user-select: none; /* Отключает выделение текста */
+  -webkit-user-select: none; /* Для браузеров на основе WebKit, таких как Safari */
+  -moz-user-select: none; /* Для Firefox */
+  -ms-user-select: none; /* Для Internet Explorer и Edge */
+}
+
 .accordion-header h2 {
+  
   margin: 0;
 }
 
 .accordion-header .arrow {
+
   margin-left: 10px;
   transition: transform 0.3s ease; /* плавный поворот стрелки */
 }
@@ -118,6 +111,90 @@ td.folder {
 }
 
 .accordion-item[open] .accordion-content {
-  max-height: 500px; /* максимальная высота контента при раскрытии */
+  max-height: 1000px; /* Увеличьте значение, если контента больше */
   padding: 10px;
+}
+
+.data-scan {
+  width: 200px;
+}
+
+.wrapper-date {
+  display: flex;
+  justify-content: space-between;
+}
+
+a {
+  font-weight: 500;
+  color: #8ab4f8;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: #7aa7e3;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button {
+  margin-left: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  border: 1px solid #8abaf8;
+  border-radius: 8px;
+  background-color: #e8f1fd;
+  color: #4a78c7;
+  font-weight: 500;
+  transition: background-color 0.3s ease, color 0.3s ease,
+    border-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+button:hover {
+  background-color: #8ab4f8;
+  color: #ffffff;
+  border-color: #7aa7e3;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+}
+
+button:active {
+  background-color: #7aa7e3;
+  border-color: #6a96cf;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn {
+  padding: 10px 15px;
+  font-weight: bold;
+}
+
+.sort-button {
+  display: flex;
+}
+
+button.sort-icon {
+  align-self: center;
+}
+
+.sort-icon.asc::after {
+  content: '↑';
+  transition: transform 0.3s ease;
+}
+
+.sort-icon.desc::after {
+  content: '↓';
+  transition: transform 0.3s ease;
+}
+
+.sort-icon::after {
+  content: '↕';
+  transition: transform 0.3s ease;
 }
