@@ -1,13 +1,37 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 
 function App() {
-  const [layers, setLayers] = useState([]);
+  const [mapsData, setMapsData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [expandedServices, setExpandedServices] = useState({});
   const [sortOrders, setSortOrders] = useState({});
+
+  // Конфигурация запроса
+  const fetchDataConfig = {
+    method: 'get',
+    maxBodyLength: Infinity,
+    url: 'http://glavapu-services:3009/todayCache',
+    headers: {}
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      // Выполнение запроса с использованием конфигурации
+      const response = await axios.request(fetchDataConfig);
+      // Устанавливаем данные из ответа
+      setMapsData(response.data);
+      setLoading(false);
+    } catch (error) {
+      setError('Ошибка загрузки данных');
+      setLoading(false);
+    }
+  };
 
   const convertTimestampToDate = (timestamp) => {
     if (!timestamp || timestamp === 0) {
@@ -24,117 +48,72 @@ function App() {
     });
   };
 
-  const fetchData = async () => {
-    setLayers([]);
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await axios.get('http://localhost:3007/api/layers');
-      setLayers(response.data);
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const handleSort = (mapKey) => {
+    const currentOrder = sortOrders[mapKey] || 'asc';
+    const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
 
-  const handleSort = (serviceName) => {
-    setSortOrders((prevSortOrders) => {
-      const currentOrder = prevSortOrders[serviceName] || 'asc';
-      const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
-      return {
-        ...prevSortOrders,
-        [serviceName]: newOrder,
-      };
-    });
-  };
-
-  const groupedLayers = useMemo(() => {
-    const layersByService = layers.reduce((acc, layer) => {
-      if (!acc[layer.nameservice]) {
-        acc[layer.nameservice] = [];
-      }
-      acc[layer.nameservice].push(layer);
-      return acc;
-    }, {});
-
-    // Сортировка слоев для каждого сервиса
-    Object.keys(layersByService).forEach(serviceName => {
-      const order = sortOrders[serviceName] || 'asc';
-      layersByService[serviceName].sort((a, b) => {
-        if (!a.timestamp) return 1;
-        if (!b.timestamp) return -1;
-        return order === 'asc'
-          ? a.timestamp - b.timestamp
-          : b.timestamp - a.timestamp;
-      });
+    const sortedLayers = [...mapsData[mapKey]].sort((a, b) => {
+      if (!a.timestamp) return 1;
+      if (!b.timestamp) return -1;
+      return newOrder === 'asc'
+        ? a.timestamp - b.timestamp
+        : b.timestamp - a.timestamp;
     });
 
-    return layersByService;
-  }, [layers, sortOrders]);
+    setSortOrders((prevSortOrders) => ({
+      ...prevSortOrders,
+      [mapKey]: newOrder,
+    }));
 
-  const toggleService = (serviceName) => {
-    setExpandedServices((prevExpandedServices) => ({
-      ...prevExpandedServices,
-      [serviceName]: !prevExpandedServices[serviceName],
+    setMapsData((prevMapsData) => ({
+      ...prevMapsData,
+      [mapKey]: sortedLayers,
     }));
   };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error}</p>;
 
   return (
     <div className="App">
-      <h1>Информация о слоях</h1>
-      <button className="btn" onClick={() => fetchData()}>
-        Обновить слои
-      </button>
-      {Object.keys(groupedLayers).length === 0 ? (
+      <h1>Информация о слоях по картам</h1>
+        {Object.keys(mapsData).length === 0 ? (
         <p>No layers available.</p>
       ) : (
-        <div className="wrapper">
-          {Object.keys(groupedLayers).map((serviceName) => (
-            <div key={serviceName} className="accordion-item">
-              <div className="accordion-header" onClick={() => toggleService(serviceName)}>
-                <h2>{serviceName}</h2>
-                {expandedServices[serviceName] ? '▲' : '▼'}
-              </div>
-              {expandedServices[serviceName] && (
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Название кода</th>
-                      <th>Название слоя</th>
-                      <th onClick={() => handleSort(serviceName)}>
-                        <div className="sort-button">
-                          Дата сканирования{' '}
-                          <button className={`sort-icon ${sortOrders[serviceName]}`}>
-                            {sortOrders[serviceName] === 'asc' ? '↑' : sortOrders[serviceName] === 'desc' ? '↓' : '↕'}
-                          </button>
-                        </div>
-                      </th>
-                      <th>Актуальная дата сканирования</th> {/* Новая колонка */}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {groupedLayers[serviceName].map((layer) => (
-                      <tr key={layer.id || `${layer.nameservice}-${layer.code}`} className={!layer.timestamp ? 'red' : ''}>
-                        <td>{layer.code}</td>
-                        <td>{layer.name}</td>
-                        <td>{convertTimestampToDate(layer.timestamp)}</td>
-                        <td>{layer.lastUpdated ? convertTimestampToDate(layer.lastUpdated) : 'Нет данных'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          ))}
-        </div>
+        Object.keys(mapsData).map((mapKey) => (
+          <div key={mapKey} className="map-section">
+            <h2>{mapKey}</h2>
+            <table>
+              <thead>
+                <tr>
+                  <th>Название слоя</th>
+                  <th>Название кода</th>
+                  <th className="data-scan" onClick={() => handleSort(mapKey)}>
+                    <div className="sort-button">
+                      Дата кэша{' '}
+                      <button className={`sort-icon ${sortOrders[mapKey]}`}>
+                        {sortOrders[mapKey] === 'asc'
+                          ? '↑'
+                          : sortOrders[mapKey] === 'desc'
+                          ? '↓'
+                          : '↕'}
+                      </button>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {mapsData[mapKey].map((layer) => (
+                  <tr key={layer.id || `${mapKey}-${layer.code}`} className={!layer.timestamp ? 'red' : ''}>
+                    <td>{layer.name || 'Без названия'}</td>
+                    <td>{layer.code}</td>
+                    <td>{convertTimestampToDate(layer.timestamp)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))
       )}
     </div>
   );
