@@ -145,87 +145,138 @@ function App() {
 			{Object.keys(mapsData).length === 0 ? (
 				<p>Нет доступных слоев.</p>
 			) : (
-				Object.keys(mapsData).map((mapKey) => {
-					const hasValidTimestamp = mapsData[mapKey].some(
-						(layer) => layer.timestamp
-					);
+				Object.keys(mapsData)
+					.map((mapKey) => {
+						const hasMismatch = mapsData[mapKey].some((layer) => {
+							const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
+								(yesterdayLayer) => yesterdayLayer.code === layer.code
+							);
+							return (
+								yesterdayLayer?.timestamp &&
+								layer.timestamp &&
+								yesterdayLayer.timestamp !== layer.timestamp
+							);
+						});
 
-					return (
-						<details
-							key={mapKey}
-							className="accordion-item"
-						>
-							<summary className="accordion-header">
-								<h2>{mapKey}</h2>
-								<span className="arrow">▼</span>
-							</summary>
-							<div className="accordion-content">
-								<table>
-									<thead>
-										<tr>
-											<th>Название слоя</th>
-											<th>Название кода</th>
-											<th>
-												<div className="wrapper-date">
-													<span>Вчерашняя дата</span>
-													{hasValidTimestamp &&
-														yesterdayMapsData[mapKey]?.length > 2 && (
-															<button
-																className={`sort-icon ${sortOrders[mapKey]}`}
-																onClick={() => handleSort(mapKey, 'yesterday')}
-															>
-																{sortOrders[mapKey] === 'asc' ? '↑' : '↓'}
-															</button>
-														)}
-												</div>
-											</th>
-											<th>
-												<div className="wrapper-date">
-													<span>Актуальная дата</span>
-													{hasValidTimestamp &&
-														mapsData[mapKey]?.length > 2 && (
-															<button
-																className={`sort-icon ${sortOrders[mapKey]}`}
-																onClick={() => handleSort(mapKey, 'today')}
-															>
-																{sortOrders[mapKey] === 'asc' ? '↑' : '↓'}
-															</button>
-														)}
-												</div>
-											</th>
-										</tr>
-									</thead>
-									<tbody>
-										{mapsData[mapKey].map((layer) => {
-											const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
-												(yesterdayLayer) => yesterdayLayer.code === layer.code
-											);
+						const hasValidTimestamp = mapsData[mapKey].some(
+							(layer) => layer.timestamp
+						);
 
-											return (
-												<tr key={layer.id || `${mapKey}-${layer.code}`}>
-													<td>{layer.name || 'Без названия'}</td>
-													<td
-														className={layer.type === 'folder' ? 'folder' : ''}
+						return (
+							<details
+								key={mapKey}
+								className={`accordion-item ${
+									hasMismatch ? 'highlight-accordion' : ''
+								}`}
+								open={hasMismatch}
+							>
+								<summary className="accordion-header">
+									<h2>{mapKey}</h2>
+									<span className="arrow">▼</span>
+								</summary>
+								<div className="accordion-content">
+									<table>
+										<thead>
+											<tr>
+												<th>Название слоя</th>
+												<th>Название кода</th>
+												<th>
+													<div className="wrapper-date">
+														<span>Вчерашняя дата</span>
+														{hasValidTimestamp &&
+															yesterdayMapsData[mapKey]?.length > 2 && (
+																<button
+																	className={`sort-icon ${sortOrders[mapKey]}`}
+																	onClick={() =>
+																		handleSort(mapKey, 'yesterday')
+																	}
+																>
+																	{sortOrders[mapKey] === 'asc' ? '↑' : '↓'}
+																</button>
+															)}
+													</div>
+												</th>
+												<th>
+													<div className="wrapper-date">
+														<span>Актуальная дата</span>
+														{hasValidTimestamp &&
+															mapsData[mapKey]?.length > 2 && (
+																<button
+																	className={`sort-icon ${sortOrders[mapKey]}`}
+																	onClick={() => handleSort(mapKey, 'today')}
+																>
+																	{sortOrders[mapKey] === 'asc' ? '↑' : '↓'}
+																</button>
+															)}
+													</div>
+												</th>
+												<th>Скачать geojson</th>
+											</tr>
+										</thead>
+										<tbody>
+											{mapsData[mapKey].map((layer) => {
+												const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
+													(yesterdayLayer) => yesterdayLayer.code === layer.code
+												);
+
+												const hasDateMismatch =
+													yesterdayLayer?.timestamp &&
+													layer.timestamp &&
+													yesterdayLayer.timestamp !== layer.timestamp;
+
+												return (
+													<tr
+														key={layer.id || `${mapKey}-${layer.code}`}
+														className={hasDateMismatch ? 'highlight-row' : ''}
 													>
-														{layer.code}
-													</td>
-													<td
-														className={!yesterdayLayer?.timestamp ? 'red' : ''}
-													>
-														{convertTimestampToDate(yesterdayLayer?.timestamp)}
-													</td>
-													<td className={!layer.timestamp ? 'red' : ''}>
-														{convertTimestampToDate(layer.timestamp)}
-													</td>
-												</tr>
-											);
-										})}
-									</tbody>
-								</table>
-							</div>
-						</details>
-					);
-				})
+														<td>{layer.name || 'Без названия'}</td>
+														<td
+															className={
+																layer.type === 'folder' ? 'folder' : ''
+															}
+														>
+															{layer.code}
+														</td>
+														<td
+															className={
+																!yesterdayLayer?.timestamp ? 'red' : ''
+															}
+														>
+															{convertTimestampToDate(
+																yesterdayLayer?.timestamp
+															)}
+														</td>
+														<td className={!layer.timestamp ? 'red' : ''}>
+															{convertTimestampToDate(layer.timestamp)}
+														</td>
+														<td>
+															{layer.type === 'folder' ? (
+																''
+															) : (
+																<>
+																	<a
+																		href={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
+																		className="button"
+																	>
+																		Скачать
+																	</a>
+																</>
+															)}
+														</td>
+													</tr>
+												);
+											})}
+										</tbody>
+									</table>
+								</div>
+							</details>
+						);
+					})
+					.sort(
+						(a, b) =>
+							b.props.className.includes('highlight-accordion') -
+							a.props.className.includes('highlight-accordion')
+					)
 			)}
 		</div>
 	);
