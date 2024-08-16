@@ -78,9 +78,12 @@ function App() {
 		}
 	};
 
-	const convertTimestampToDate = (timestamp) => {
+	const convertTimestampToDate = (timestamp, type) => {
+		if (type === 'folder') {
+			return null; // Для типа folder не возвращаем ничего
+		}
 		if (!timestamp || timestamp === 0) {
-			return 'время - неизвестно';
+			return 'время неизвестно';
 		}
 		const date = new Date(timestamp * 1000);
 		return date.toLocaleString('ru-RU', {
@@ -140,8 +143,8 @@ function App() {
 	if (error) return <p>Error: {error}</p>;
 
 	return (
-		<div className="App">
-			<h1>Информация о слоях</h1>
+		<div className="wrapper">
+			<h1> Информация о слоях в <a href="http://vector.mka.mos.ru/gis/" target="_blank">ВекторГИС </a> </h1>
 			{Object.keys(mapsData).length === 0 ? (
 				<p>Нет доступных слоев.</p>
 			) : (
@@ -161,17 +164,17 @@ function App() {
 						const hasValidTimestamp = mapsData[mapKey].some(
 							(layer) => layer.timestamp
 						);
-
 						return (
 							<details
 								key={mapKey}
 								className={`accordion-item ${
 									hasMismatch ? 'highlight-accordion' : ''
 								}`}
-								open={hasMismatch}
 							>
 								<summary className="accordion-header">
-									<h2>{mapKey}</h2>
+									<h2>
+										{mapKey} {mapsData[mapKey]?.code}
+									</h2>
 									<span className="arrow">▼</span>
 								</summary>
 								<div className="accordion-content">
@@ -190,9 +193,7 @@ function App() {
 																	onClick={() =>
 																		handleSort(mapKey, 'yesterday')
 																	}
-																>
-																	{sortOrders[mapKey] === 'asc' ? '↑' : '↓'}
-																</button>
+																></button>
 															)}
 													</div>
 												</th>
@@ -204,9 +205,7 @@ function App() {
 																<button
 																	className={`sort-icon ${sortOrders[mapKey]}`}
 																	onClick={() => handleSort(mapKey, 'today')}
-																>
-																	{sortOrders[mapKey] === 'asc' ? '↑' : '↓'}
-																</button>
+																></button>
 															)}
 													</div>
 												</th>
@@ -239,15 +238,28 @@ function App() {
 														</td>
 														<td
 															className={
-																!yesterdayLayer?.timestamp ? 'red' : ''
+																!yesterdayLayer?.timestamp &&
+																layer.type !== 'folder'
+																	? 'time-null'
+																	: ''
 															}
 														>
 															{convertTimestampToDate(
-																yesterdayLayer?.timestamp
+																yesterdayLayer?.timestamp,
+																layer.type
 															)}
 														</td>
-														<td className={!layer.timestamp ? 'red' : ''}>
-															{convertTimestampToDate(layer.timestamp)}
+														<td
+															className={
+																!layer?.timestamp && layer.type !== 'folder'
+																	? 'time-null'
+																	: ''
+															}
+														>
+															{convertTimestampToDate(
+																layer.timestamp,
+																layer.type
+															)}
 														</td>
 														<td>
 															{layer.type === 'folder' ? (
@@ -259,6 +271,12 @@ function App() {
 																		className="button"
 																	>
 																		Скачать
+																	</a>
+																	<a
+																		// href={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
+																		className="button"
+																	>
+																		Загрузить в БД
 																	</a>
 																</>
 															)}

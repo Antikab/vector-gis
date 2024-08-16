@@ -1,76 +1,82 @@
-#root {
-	max-width: 1280px;
-	margin: 0 auto;
-	padding: 2rem;
-	text-align: center;
+/* Базовые стили */
+body {
+	margin: 0;
+	padding: 0;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 100vh;
 }
 
 .wrapper {
 	display: flex;
 	flex-direction: column;
 	row-gap: 20px;
+	padding: 25px 50px;
+	box-sizing: border-box;
+}
+
+h1 {
+	font-size: 2rem;
+	color: #222224;
+	margin-bottom: 20px;
+}
+
+p {
+	font-size: 18px;
+	color: #444;
 }
 
 table {
 	width: 100%;
 	border-collapse: collapse;
-	margin: 20px 0;
 	font-size: 16px;
 	text-align: left;
-	transition: background-color 0.3s ease;
 }
 
 th {
 	background-color: #4975af;
 	color: white;
 	padding: 12px 15px;
-	border-bottom: 2px solid #ddd;
 }
 
 td {
 	padding: 12px 15px;
-	border-bottom: 1px solid #ddd;
 }
 
 tr:nth-child(even) {
-	background-color: #f9f9f9;
+	background-color: #8380801e;
 }
 
 tr:hover {
-	background-color: #f1f1f1;
+	background-color: #ffba5375; /* Полупрозрачная подсветка */
 	transition: background-color 0.3s ease;
 }
 
-h1 {
-	font-size: 2rem;
-	line-height: 1.1;
-	color: #222224;
-	transition: color 0.3s ease;
-}
-
-p {
-	font-size: 18px;
-	transition: color 0.3s ease;
-}
-
-td.red {
-
+td.time-null {
 	background-color: #0000004b;
 }
 
 td.folder {
-	background-color: #ffbb004d;
+	background-color: #ffae004d;
+}
+
+.highlight-row td {
+	background-color: #ff00003b;
+}
+
+.highlight-accordion .accordion-header {
+	background-color: #b31616d0; /* Фиолетовый цвет для заголовка при несовпадении дат */
 }
 
 /* Стили для аккордеона */
 .accordion-item {
 	margin-top: 30px;
 	border: 1px solid #ddd;
-	border-radius: 4px;
+	border-radius: 10px;
 }
 
 .accordion-header {
-	width: 1030px;
 	background-color: #3a4d66;
 	color: white;
 	padding: 10px 15px;
@@ -79,13 +85,7 @@ td.folder {
 	justify-content: space-between;
 	align-items: center;
 	transition: background-color 0.3s ease;
-}
-
-.accordion-header {
-	user-select: none; /* Отключает выделение текста */
-	-webkit-user-select: none; /* Для браузеров на основе WebKit, таких как Safari */
-	-moz-user-select: none; /* Для Firefox */
-	-ms-user-select: none; /* Для Internet Explorer и Edge */
+	user-select: none;
 }
 
 .accordion-header h2 {
@@ -93,24 +93,15 @@ td.folder {
 }
 
 .accordion-header .arrow {
-	transition: transform 0.3s ease; /* плавный поворот стрелки */
+	transition: transform 0.3s ease;
 }
 
 .accordion-item[open] .accordion-header {
-	background-color: #3a5b8d; /* Цвет заголовка при открытии */
+	background-color: #3a5b8d;
 }
 
-/* Поворот стрелки при раскрытии */
 .accordion-item[open] .accordion-header .arrow {
 	transform: rotate(180deg);
-}
-
-.accordion-item[open] .accordion-content {
-	padding: 0px;
-}
-
-.data-scan {
-	width: 200px;
 }
 
 .wrapper-date {
@@ -119,9 +110,7 @@ td.folder {
 }
 
 a {
-	font-weight: 500;
-	color: #8ab4f8;
-	text-decoration: none;
+	color: #2f5da8;
 	transition: color 0.3s ease;
 }
 
@@ -129,105 +118,114 @@ a:hover {
 	color: #7aa7e3;
 }
 
-body {
-	margin: 0;
-	display: flex;
-	justify-content: center;
-	place-items: center;
-	min-width: 320px;
-	min-height: 100vh;
-}
-
-.button {
-	margin-left: 5px;
-	padding: 5px 10px;
-	cursor: pointer;
-	border: 1px solid #8abaf8;
-	border-radius: 8px;
-	background-color: #e8f1fd;
-	color: #4a78c7;
-	font-weight: 500;
-	transition: background-color 0.3s ease, color 0.3s ease,
-		border-color 0.3s ease, box-shadow 0.3s ease;
-	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.button:hover {
-	background-color: #8ab4f8;
-	color: #ffffff;
-	border-color: #7aa7e3;
-	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-}
-
-.button:active {
-	background-color: #7aa7e3;
-	border-color: #6a96cf;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
+.button,
 button {
 	margin-left: 5px;
 	padding: 5px 10px;
-	cursor: pointer;
 	border: 1px solid #8abaf8;
 	border-radius: 8px;
 	background-color: #e8f1fd;
 	color: #4a78c7;
-	font-weight: 500;
-	transition: background-color 0.3s ease, color 0.3s ease,
-		border-color 0.3s ease, box-shadow 0.3s ease;
-	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+	cursor: pointer;
+	transition: all 0.3s ease;
 }
 
+.button:hover,
 button:hover {
 	background-color: #8ab4f8;
-	color: #ffffff;
-	border-color: #7aa7e3;
-	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+	color: white;
 }
 
+.button:active,
 button:active {
 	background-color: #7aa7e3;
-	border-color: #6a96cf;
-	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.btn {
-	padding: 10px 15px;
-	font-weight: bold;
-}
-
-.sort-button {
-	display: flex;
-}
-
-button.sort-icon {
-	align-self: center;
 }
 
 .sort-icon.asc::after {
 	content: '↑';
-	transition: transform 0.3s ease;
 }
 
 .sort-icon.desc::after {
 	content: '↓';
-	transition: transform 0.3s ease;
 }
 
 .sort-icon::after {
 	content: '↕';
-	transition: transform 0.3s ease;
 }
 
-.highlight-row td {
-	background-color: #ff000049; /* Фиолетовый цвет для строк с несовпадающими датами */
+/* Адаптивные стили */
+@media (max-width: 2560px) {
+	.wrapper {
+		width: 100%;
+		padding: 1.5rem;
+	}
+}
+@media (max-width: 1440px) {
+	.wrapper {
+		width: 100%;
+		padding: 1.5rem;
+	}
+}
+@media (max-width: 1024px) {
+	.wrapper {
+		width: 100%;
+		padding: 1.5rem;
+	}
+
+	th,
+	td {
+		font-size: 14px;
+		padding: 10px 12px;
+	}
+
+	.accordion-header {
+		font-size: 18px;
+	}
 }
 
-.highlight-accordion .accordion-header {
-	background-color: #be0b0bd8; /* Фиолетовый цвет для заголовка при несовпадении дат */
+@media (max-width: 768px) {
+	.wrapper {
+		width: 100%;
+
+		padding: 1rem;
+		row-gap: 10px;
+	}
+
+	th,
+	td {
+		font-size: 12px;
+		padding: 8px;
+	}
+
+	.accordion-header {
+		font-size: 16px;
+		padding: 8px 10px;
+	}
+
+	h1 {
+		font-size: 1.5rem;
+	}
 }
 
+@media (max-width: 480px) {
+	.wrapper {
+		width: 100%;
+		padding: 0.5rem;
+		row-gap: 5px;
+	}
 
-.accordion-content {
-	width: 1030px;
+	th,
+	td {
+		font-size: 10px;
+		padding: 5px;
+	}
+
+	.accordion-header {
+		font-size: 14px;
+		padding: 6px 8px;
+	}
+
+	h1 {
+		font-size: 1.2rem;
+	}
 }
