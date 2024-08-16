@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
+import serviceNames from './components/serviceNames';
 
 function App() {
 	const [mapsData, setMapsData] = useState({});
@@ -25,6 +26,12 @@ function App() {
 		url: 'http://glavapu-services:3009/yesterdayCache',
 		// url: 'http://172.18.204.214:3009/yesterdayCache',
 		headers: {},
+	};
+
+	// Функция для извлечения номера из `mapKey`
+	const extractServiceNumber = (mapKey) => {
+		const match = mapKey.match(/\d+/);
+		return match ? match[0] : null;
 	};
 
 	useEffect(() => {
@@ -144,12 +151,24 @@ function App() {
 
 	return (
 		<div className="wrapper">
-			<h1> Информация о слоях в <a href="http://vector.mka.mos.ru/gis/" target="_blank">ВекторГИС </a> </h1>
+			<h1>
+				{' '}
+				Информация о слоях в{' '}
+				<a
+					href="http://vector.mka.mos.ru/gis/"
+					target="_blank"
+				>
+					ВекторГИС{' '}
+				</a>{' '}
+			</h1>
 			{Object.keys(mapsData).length === 0 ? (
 				<p>Нет доступных слоев.</p>
 			) : (
 				Object.keys(mapsData)
 					.map((mapKey) => {
+						const serviceNumber = extractServiceNumber(mapKey);
+						const serviceName = serviceNames[serviceNumber];
+
 						const hasMismatch = mapsData[mapKey].some((layer) => {
 							const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
 								(yesterdayLayer) => yesterdayLayer.code === layer.code
@@ -173,9 +192,11 @@ function App() {
 							>
 								<summary className="accordion-header">
 									<h2>
-										{mapKey} {mapsData[mapKey]?.code}
+									{serviceName ? `${serviceNumber} ${serviceName}` : mapKey}
 									</h2>
-									<span className="arrow">▼</span>
+									<span className="accordion-indicator">
+										
+									</span>
 								</summary>
 								<div className="accordion-content">
 									<table>
@@ -265,7 +286,7 @@ function App() {
 															{layer.type === 'folder' ? (
 																''
 															) : (
-																<>
+																<div className='link-wrapper'>
 																	<a
 																		href={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
 																		className="button"
@@ -278,7 +299,7 @@ function App() {
 																	>
 																		Загрузить в БД
 																	</a>
-																</>
+																</div>
 															)}
 														</td>
 													</tr>
