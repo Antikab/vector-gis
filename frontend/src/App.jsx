@@ -31,7 +31,7 @@ function App() {
 	// Функция для извлечения номера из `mapKey`
 	const extractServiceNumber = (mapKey) => {
 		const match = mapKey.match(/\d+/);
-		return match ? match[0] : null;
+		return match ? parseInt(match[0], 10) : null;
 	};
 
 	useEffect(() => {
@@ -52,7 +52,33 @@ function App() {
 			}, 100);
 
 			const response = await axios.request(fetchDataConfig);
-			setMapsData(response.data);
+
+			// Сортировка данных: сначала по числовым значениям, затем по строкам
+			const sortedKeys = Object.keys(response.data).sort((a, b) => {
+				const aNumber = extractServiceNumber(a);
+				const bNumber = extractServiceNumber(b);
+
+				if (aNumber !== null && bNumber !== null) {
+					// Если оба ключа содержат числа, сортируем по ним
+					return aNumber - bNumber;
+				} else if (aNumber !== null) {
+					// Если только aNumber существует, он идет раньше
+					return -1;
+				} else if (bNumber !== null) {
+					// Если только bNumber существует, он идет раньше
+					return 1;
+				} else {
+					// Если оба значения не числовые, сортируем их как строки
+					return a.localeCompare(b);
+				}
+			});
+
+			const sortedData = sortedKeys.reduce((acc, key) => {
+				acc[key] = response.data[key];
+				return acc;
+			}, {});
+
+			setMapsData(sortedData);
 			setLoading(false);
 			setProgress(100); // Установите прогресс в 100% после успешной загрузки
 		} catch (error) {
@@ -157,165 +183,160 @@ function App() {
 				<a
 					href="http://vector.mka.mos.ru/gis/"
 					target="_blank"
+					rel="noopener noreferrer"
 				>
 					ВекторГИС{' '}
 				</a>{' '}
 			</h1>
+			<div>
+				<button className="sort-button">Переместить измененные вверх</button>
+			</div>
 			{Object.keys(mapsData).length === 0 ? (
 				<p>Нет доступных слоев.</p>
 			) : (
-				Object.keys(mapsData)
-					.map((mapKey) => {
-						const serviceNumber = extractServiceNumber(mapKey);
-						const serviceName = serviceNames[serviceNumber];
+				Object.keys(mapsData).map((mapKey) => {
+					const serviceNumber = extractServiceNumber(mapKey);
+					const serviceName = serviceNames[serviceNumber];
 
-						const hasMismatch = mapsData[mapKey].some((layer) => {
-							const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
-								(yesterdayLayer) => yesterdayLayer.code === layer.code
-							);
-							return (
-								yesterdayLayer?.timestamp &&
-								layer.timestamp &&
-								yesterdayLayer.timestamp !== layer.timestamp
-							);
-						});
-
-						const hasValidTimestamp = mapsData[mapKey].some(
-							(layer) => layer.timestamp
+					const hasMismatch = mapsData[mapKey].some((layer) => {
+						const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
+							(yesterdayLayer) => yesterdayLayer.code === layer.code
 						);
 						return (
-							<details
-								key={mapKey}
-								className={`accordion-item ${
-									hasMismatch ? 'highlight-accordion' : ''
-								}`}
-							>
-								<summary className="accordion-header">
-									<h2>
-									{serviceName ? `${serviceNumber} ${serviceName}` : mapKey}
-									</h2>
-									<span className="accordion-indicator">
-										
-									</span>
-								</summary>
-								<div className="accordion-content">
-									<table>
-										<thead>
-											<tr>
-												<th>Название слоя</th>
-												<th>Название кода</th>
-												<th>
-													<div className="wrapper-date">
-														<span>Вчерашняя дата</span>
-														{hasValidTimestamp &&
-															yesterdayMapsData[mapKey]?.length > 2 && (
-																<button
-																	className={`sort-icon ${sortOrders[mapKey]}`}
-																	onClick={() =>
-																		handleSort(mapKey, 'yesterday')
-																	}
-																></button>
-															)}
-													</div>
-												</th>
-												<th>
-													<div className="wrapper-date">
-														<span>Актуальная дата</span>
-														{hasValidTimestamp &&
-															mapsData[mapKey]?.length > 2 && (
-																<button
-																	className={`sort-icon ${sortOrders[mapKey]}`}
-																	onClick={() => handleSort(mapKey, 'today')}
-																></button>
-															)}
-													</div>
-												</th>
-												<th>Скачать geojson</th>
-											</tr>
-										</thead>
-										<tbody>
-											{mapsData[mapKey].map((layer) => {
-												const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
-													(yesterdayLayer) => yesterdayLayer.code === layer.code
-												);
-
-												const hasDateMismatch =
-													yesterdayLayer?.timestamp &&
-													layer.timestamp &&
-													yesterdayLayer.timestamp !== layer.timestamp;
-
-												return (
-													<tr
-														key={layer.id || `${mapKey}-${layer.code}`}
-														className={hasDateMismatch ? 'highlight-row' : ''}
-													>
-														<td>{layer.name || 'Без названия'}</td>
-														<td
-															className={
-																layer.type === 'folder' ? 'folder' : ''
-															}
-														>
-															{layer.code}
-														</td>
-														<td
-															className={
-																!yesterdayLayer?.timestamp &&
-																layer.type !== 'folder'
-																	? 'time-null'
-																	: ''
-															}
-														>
-															{convertTimestampToDate(
-																yesterdayLayer?.timestamp,
-																layer.type
-															)}
-														</td>
-														<td
-															className={
-																!layer?.timestamp && layer.type !== 'folder'
-																	? 'time-null'
-																	: ''
-															}
-														>
-															{convertTimestampToDate(
-																layer.timestamp,
-																layer.type
-															)}
-														</td>
-														<td>
-															{layer.type === 'folder' ? (
-																''
-															) : (
-																<div className='link-wrapper'>
-																	<a
-																		href={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
-																		className="button"
-																	>
-																		Скачать
-																	</a>
-																	<a
-																		// href={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
-																		className="button"
-																	>
-																		Загрузить в БД
-																	</a>
-																</div>
-															)}
-														</td>
-													</tr>
-												);
-											})}
-										</tbody>
-									</table>
-								</div>
-							</details>
+							yesterdayLayer?.timestamp &&
+							layer.timestamp &&
+							yesterdayLayer.timestamp !== layer.timestamp
 						);
-					})
-					.sort(
-						(a, b) =>
-							b.props.className.includes('highlight-accordion') -
-							a.props.className.includes('highlight-accordion')
-					)
+					});
+
+					const hasValidTimestamp = mapsData[mapKey].some(
+						(layer) => layer.timestamp
+					);
+					return (
+						<details
+							key={mapKey}
+							className={`accordion-item ${
+								hasMismatch ? 'highlight-accordion' : ''
+							}`}
+						>
+							<summary className="accordion-header">
+								<h2>
+									Сервис {''}
+									{serviceName
+										? `${serviceNumber} - ${serviceName}`
+										: `${mapKey.replace('map', '')}`}
+								</h2>
+								<span className="accordion-indicator"></span>
+							</summary>
+							<div className="accordion-content">
+								<table>
+									<thead>
+										<tr>
+											<th>Название слоя</th>
+											<th>Название кода</th>
+											<th>
+												<div className="wrapper-date">
+													<span>Вчерашняя дата</span>
+													{hasValidTimestamp &&
+														yesterdayMapsData[mapKey]?.length > 2 && (
+															<button
+																className={`sort-icon ${sortOrders[mapKey]}`}
+																onClick={() => handleSort(mapKey, 'yesterday')}
+															></button>
+														)}
+												</div>
+											</th>
+											<th>
+												<div className="wrapper-date">
+													<span>Актуальная дата</span>
+													{hasValidTimestamp &&
+														mapsData[mapKey]?.length > 2 && (
+															<button
+																className={`sort-icon ${sortOrders[mapKey]}`}
+																onClick={() => handleSort(mapKey, 'today')}
+															></button>
+														)}
+												</div>
+											</th>
+											<th>Скачать geojson</th>
+										</tr>
+									</thead>
+									<tbody>
+										{mapsData[mapKey].map((layer) => {
+											const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
+												(yesterdayLayer) => yesterdayLayer.code === layer.code
+											);
+
+											const hasDateMismatch =
+												yesterdayLayer?.timestamp &&
+												layer.timestamp &&
+												yesterdayLayer.timestamp !== layer.timestamp;
+
+											return (
+												<tr
+													key={layer.id || `${mapKey}-${layer.code}`}
+													className={hasDateMismatch ? 'highlight-row' : ''}
+												>
+													<td>{layer.name || 'Без названия'}</td>
+													<td
+														className={layer.type === 'folder' ? 'folder' : ''}
+													>
+														{layer.code}
+													</td>
+													<td
+														className={
+															!yesterdayLayer?.timestamp &&
+															layer.type !== 'folder'
+																? 'time-null'
+																: ''
+														}
+													>
+														{convertTimestampToDate(
+															yesterdayLayer?.timestamp,
+															layer.type
+														)}
+													</td>
+													<td
+														className={
+															!layer?.timestamp && layer.type !== 'folder'
+																? 'time-null'
+																: ''
+														}
+													>
+														{convertTimestampToDate(
+															layer.timestamp,
+															layer.type
+														)}
+													</td>
+													<td>
+														{layer.type === 'folder' ? (
+															''
+														) : (
+															<div className="link-wrapper">
+																<a
+																	href={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
+																	className="button"
+																>
+																	Скачать
+																</a>
+																<a
+																	// href={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
+																	className="button"
+																>
+																	Загрузить в БД
+																</a>
+															</div>
+														)}
+													</td>
+												</tr>
+											);
+										})}
+									</tbody>
+								</table>
+							</div>
+						</details>
+					);
+				})
 			)}
 		</div>
 	);

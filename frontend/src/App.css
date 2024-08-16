@@ -81,6 +81,7 @@ td.folder {
 }
 
 .accordion-header {
+	gap: 30px;
 	background-color: #3a4d66;
 	color: white;
 	padding: 15px 15px;
@@ -98,19 +99,16 @@ td.folder {
 
 .accordion-item[open] .accordion-header {
 	background-color: #3a5b8d;
-	
 }
 .accordion-item[open] .accordion-indicator::after {
 	transform: rotate(90deg);
 	transition-duration: 0.2s;
 	background-color: #3a5b8d;
-
 }
 
 .accordion-item .accordion-indicator::after {
 	transform: rotate(0deg);
 	transition-duration: 0.2s;
-
 }
 .accordion-indicator {
 	display: flex;
@@ -131,7 +129,6 @@ td.folder {
 	background-color: currentColor;
 
 	border: 3px solid #c9c9c963;
-
 }
 
 .accordion-indicator::before {
@@ -147,14 +144,11 @@ td.folder {
 	width: 45%;
 	height: 10%;
 	background-color: #555555;
-
-}
-
-.accordion-header .accordion-indicator {
 }
 
 .wrapper-date {
 	display: flex;
+	gap: 10px;
 	flex-wrap: wrap;
 }
 
@@ -168,20 +162,40 @@ a:hover {
 	color: #7aa7e3;
 }
 
-a .link-wrapper {
+.link-wrapper {
 	display: flex;
+	gap: 10px;
 	flex-wrap: wrap;
+}
+
+.sort-button {
+	padding: 15px 20px;
+	font-size: 1rem;
+	border-radius: 15px;
+	font-weight: 600;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.253); /* Тень для всего аккордеона */
+	transition: box-shadow 0.3s ease; /* Плавное изменение тени */
+}
+
+.sort-button:hover {
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.11);
+	transition: box-shadow 0.3s ease;
+}
+
+.sort-button:active {
+	background-color: #7aa7e3;
 }
 
 .button,
 button {
-	margin-left: 5px;
+	display: flex;
 	padding: 5px 10px;
 	border: 1px solid #8abaf8;
 	border-radius: 8px;
 	background-color: #e8f1fd;
 	color: #4a78c7;
 	cursor: pointer;
+	font-weight: 500;
 	transition: all 0.3s ease;
 }
 
