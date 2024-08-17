@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+// import axios from 'axios';
 import './App.css';
 import serviceNames from './components/serviceNames';
+import { testData, testYesterdayData } from './components/testData';
 
 function App() {
 	const [mapsData, setMapsData] = useState({});
@@ -10,6 +11,27 @@ function App() {
 	const [error, setError] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [progress, setProgress] = useState(0);
+
+	// Функция для извлечения номера из `mapKey`
+	const extractServiceNumber = (mapKey) => {
+		const match = mapKey.match(/\d+/);
+		return match ? parseInt(match[0], 10) : null;
+	};
+
+	// Функция для симуляции прогресса загрузки
+	const simulateProgress = () => {
+		let simulatedProgress = 0;
+		return new Promise((resolve) => {
+			const interval = setInterval(() => {
+				simulatedProgress += 10;
+				setProgress(simulatedProgress);
+				if (simulatedProgress >= 100) {
+					clearInterval(interval);
+					resolve();
+				}
+			}, 100);
+		});
+	};
 
 	const fetchDataConfig = {
 		method: 'get',
@@ -28,33 +50,22 @@ function App() {
 		headers: {},
 	};
 
-	// Функция для извлечения номера из `mapKey`
-	const extractServiceNumber = (mapKey) => {
-		const match = mapKey.match(/\d+/);
-		return match ? parseInt(match[0], 10) : null;
-	};
+	// useEffect(() => {
+	// 	fetchData();
+	// 	fetchDataYesterday();
+	// }, []);
 
-	useEffect(() => {
-		fetchData();
-		fetchDataYesterday();
-	}, []);
-
-	const fetchData = async () => {
+	// const fetchData = async () => {
+	const fetchTestData = async () => {
 		try {
 			// Симуляция прогресса загрузки
-			let simulatedProgress = 0;
-			const interval = setInterval(() => {
-				simulatedProgress += 10; // Увеличиваем прогресс на 10% каждые 100ms
-				setProgress(simulatedProgress);
-				if (simulatedProgress >= 100) {
-					clearInterval(interval);
-				}
-			}, 100);
+			await simulateProgress();
 
-			const response = await axios.request(fetchDataConfig);
+			// const response = await axios.request(fetchDataConfig);
 
 			// Сортировка данных: сначала по числовым значениям, затем по строкам
-			const sortedKeys = Object.keys(response.data).sort((a, b) => {
+			// const sortedKeys = Object.keys(response.data).sort((a, b) => {
+			const sortedKeys = Object.keys(testData).sort((a, b) => {
 				const aNumber = extractServiceNumber(a);
 				const bNumber = extractServiceNumber(b);
 
@@ -74,42 +85,47 @@ function App() {
 			});
 
 			const sortedData = sortedKeys.reduce((acc, key) => {
-				acc[key] = response.data[key];
+				// acc[key] = response.data[key];
+				acc[key] = testData[key];
 				return acc;
 			}, {});
 
 			setMapsData(sortedData);
-			setLoading(false);
 			setProgress(100); // Установите прогресс в 100% после успешной загрузки
 		} catch (error) {
 			setError('Ошибка загрузки данных');
-			setLoading(false);
 			setProgress(100); // Установите прогресс в 100% даже в случае ошибки
 		}
 	};
 
-	const fetchDataYesterday = async () => {
+	// const fetchDataYesterday = async () => {
+	const fetchTestDataYesterday = async () => {
 		try {
 			// Симуляция прогресса загрузки
-			let simulatedProgress = 0;
-			const interval = setInterval(() => {
-				simulatedProgress += 10; // Увеличиваем прогресс на 10% каждые 100ms
-				setProgress(simulatedProgress);
-				if (simulatedProgress >= 100) {
-					clearInterval(interval);
-				}
-			}, 100);
-
-			const response = await axios.request(fetchYesterdayDataConfig);
-			setYesterdayMapsData(response.data);
-			setLoading(false);
+			await simulateProgress();
+			// const response = await axios.request(fetchYesterdayDataConfig);
+			setYesterdayMapsData(testYesterdayData);
 			setProgress(100); // Установите прогресс в 100% после успешной загрузки
 		} catch (error) {
 			setError('Ошибка загрузки данных');
-			setLoading(false);
 			setProgress(100); // Установите прогресс в 100% даже в случае ошибки
 		}
 	};
+
+	useEffect(() => {
+		if (progress === 100) {
+			setLoading(false);
+		}
+	}, [progress]);
+
+	useEffect(() => {
+		const fetchData = async () => {
+			await fetchTestData();
+			await fetchTestDataYesterday();
+		};
+
+		fetchData();
+	}, []);
 
 	const convertTimestampToDate = (timestamp, type) => {
 		if (type === 'folder') {
@@ -165,12 +181,15 @@ function App() {
 
 	if (loading)
 		return (
-			<div className="loading-container">
-				<progress
-					value={progress}
-					max="100"
-				/>
-				<p>Загрузка слоев... {progress}%</p>
+			<div className="loading-wrapper">
+				<div className="loading-container">
+					<progress
+						value={progress}
+						max="100"
+					/>
+					<span>{progress}%</span>
+					<p>Загрузка слоев...</p>
+				</div>
 			</div>
 		);
 	if (error) return <p>Error: {error}</p>;

@@ -55,7 +55,7 @@ tr:hover {
 }
 
 td.time-null {
-	background-color: #0000004b;
+	background-color: #3c426a20;
 }
 
 td.folder {
@@ -298,3 +298,30 @@ button:active {
 		font-size: 1.2rem;
 	}
 }
+
+
+/* Выровнять контейнер по центру экрана */
+.loading-wrapper {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+}
+
+/* Центрировать содержимое внутри контейнера */
+.loading-container {
+	display: flex;
+	flex-direction: column; /* Разместить элементы вертикально */
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+	gap: 10px; /* Промежуток между элементами */
+}
+
+/* Стилизация текста */
+.loading-container p {
+	margin: 0;
+	font-size: 16px; /* Можно настроить размер шрифта */
+	color: #333; /* Цвет текста */
+}
+
