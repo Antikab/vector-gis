@@ -32,7 +32,6 @@ table {
 }
 
 th {
-	background-color: #4975af;
 	color: white;
 	padding: 12px 15px;
 }
@@ -41,13 +40,23 @@ td {
 	padding: 12px 15px;
 }
 
-tr:nth-child(even) {
+tbody:nth-child(even) {
 	background-color: #8380801e;
 }
 
-tr:hover {
+tbody:hover {
 	background-color: #ffba5375; /* Полупрозрачная подсветка */
 	transition: background-color 0.3s ease;
+}
+
+.thead-header {
+	background-color: #4975af;
+	user-select: none;
+}
+
+.thead-highlight {
+	background-color: #d15a5a;
+	user-select: none;
 }
 
 td.time-null {
@@ -63,7 +72,7 @@ td.folder {
 }
 
 .highlight-accordion .accordion-header {
-	background-color: #b31616d0;
+	background-color: #961616d0;
 }
 
 /* Стили для аккордеона */
@@ -141,6 +150,10 @@ td.folder {
 	background-color: #555555;
 }
 
+.accordion-item[open] .highlight-accordion-open {
+	background-color: #b31616d0;
+}
+
 .wrapper-date {
 	display: flex;
 	gap: 10px;
@@ -170,19 +183,27 @@ a:hover {
 
 .sort-button {
 	padding: 10px 15px;
-	border-radius: 10px;
+	border-radius: 12px;
+	border: none;
+	font-size: 16px;
 	font-weight: 600;
-	box-shadow: 0 4px 4px rgba(0, 0, 0, 0.253); /* Тень для всего аккордеона */
-	transition: box-shadow 0.3s ease; /* Плавное изменение тени */
+	background-color: #e8f1fd;
+	color: #505052;
+	background: linear-gradient(145deg, #ffffff, #e6e6e6);
+	box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3), -4px -4px 8px rgba(255, 255, 255, 0.7);
+	transition: box-shadow 0.3s ease, transform 0.2s ease; 
 }
 
 .sort-button:hover {
-	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.11);
-	transition: box-shadow 0.3s ease;
+	color: #222224;
+	box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.3), -6px -6px 12px rgba(255, 255, 255, 0.7);
+	transform: translateY(-2px);
 }
 
 .sort-button:active {
-	background-color: #7aa7e3;
+	box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3), -2px -2px 4px rgba(255, 255, 255, 0.7);
+	transform: translateY(2px);
+	background: linear-gradient(145deg, #e6e6e6, #ffffff);
 }
 
 .button,

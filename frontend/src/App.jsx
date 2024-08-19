@@ -278,7 +278,11 @@ function App() {
 								hasMismatch ? 'highlight-accordion' : ''
 							}`}
 						>
-							<summary className="accordion-header">
+							<summary
+								className={`accordion-header ${
+									hasMismatch ? 'highlight-accordion-open' : ''
+								}`}
+							>
 								<h2>
 									Сервис {''}
 									{serviceName
@@ -289,7 +293,11 @@ function App() {
 							</summary>
 							<div className="accordion-content">
 								<table>
-									<thead>
+									<thead
+										className={`thead-header ${
+											hasMismatch ? 'thead-highlight' : ''
+										}`}
+									>
 										<tr>
 											<th>Название слоя</th>
 											<th>Название кода</th>
@@ -320,22 +328,20 @@ function App() {
 											<th>Скачать geojson</th>
 										</tr>
 									</thead>
-									<tbody>
-										{mapsData[mapKey].map((layer) => {
-											const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
-												(yesterdayLayer) => yesterdayLayer.code === layer.code
-											);
 
-											const hasDateMismatch =
-												yesterdayLayer?.timestamp &&
-												layer.timestamp &&
-												yesterdayLayer.timestamp !== layer.timestamp;
+									{mapsData[mapKey].map((layer) => {
+										const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
+											(yesterdayLayer) => yesterdayLayer.code === layer.code
+										);
 
-											return (
-												<tr
-													key={layer.id || `${mapKey}-${layer.code}`}
-													className={hasDateMismatch ? 'highlight-row' : ''}
-												>
+										const hasDateMismatch =
+											yesterdayLayer?.timestamp &&
+											layer.timestamp &&
+											yesterdayLayer.timestamp !== layer.timestamp;
+
+										return (
+											<tbody key={layer.id || `${mapKey}-${layer.code}`}>
+												<tr className={hasDateMismatch ? 'highlight-row' : ''}>
 													<td>{layer.name || 'Без названия'}</td>
 													<td
 														className={layer.type === 'folder' ? 'folder' : ''}
@@ -388,9 +394,9 @@ function App() {
 														)}
 													</td>
 												</tr>
-											);
-										})}
-									</tbody>
+											</tbody>
+										);
+									})}
 								</table>
 							</div>
 						</details>
