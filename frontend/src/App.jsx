@@ -11,6 +11,8 @@ function App() {
 	const [error, setError] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [progress, setProgress] = useState(0);
+	const [filteredMapsData, setFilteredMapsData] = useState({});
+	const [isFiltered, setIsFiltered] = useState(false); // добавляем состояние для отслеживания состояния фильтра
 
 	// Функция для извлечения номера из `mapKey`
 	const extractServiceNumber = (mapKey) => {
@@ -33,27 +35,22 @@ function App() {
 		});
 	};
 
-	const fetchDataConfig = {
-		method: 'get',
-		maxBodyLength: Infinity,
-		url: 'http://glavapu-services:3009/todayCache',
-		// url: 'http://172.18.204.214:3009/todayCache',
+	// const fetchDataConfig = {
+	// 	method: 'get',
+	// 	maxBodyLength: Infinity,
+	// 	url: 'http://glavapu-services:3009/todayCache',
+	// 	// url: 'http://172.18.204.214:3009/todayCache',
 
-		headers: {},
-	};
+	// 	headers: {},
+	// };
 
-	const fetchYesterdayDataConfig = {
-		method: 'get',
-		maxBodyLength: Infinity,
-		url: 'http://glavapu-services:3009/yesterdayCache',
-		// url: 'http://172.18.204.214:3009/yesterdayCache',
-		headers: {},
-	};
-
-	// useEffect(() => {
-	// 	fetchData();
-	// 	fetchDataYesterday();
-	// }, []);
+	// const fetchYesterdayDataConfig = {
+	// 	method: 'get',
+	// 	maxBodyLength: Infinity,
+	// 	url: 'http://glavapu-services:3009/yesterdayCache',
+	// 	// url: 'http://172.18.204.214:3009/yesterdayCache',
+	// 	headers: {},
+	// };
 
 	// const fetchData = async () => {
 	const fetchTestData = async () => {
@@ -104,6 +101,7 @@ function App() {
 			// Симуляция прогресса загрузки
 			await simulateProgress();
 			// const response = await axios.request(fetchYesterdayDataConfig);
+			// setYesterdayMapsData(response.data);
 			setYesterdayMapsData(testYesterdayData);
 			setProgress(100); // Установите прогресс в 100% после успешной загрузки
 		} catch (error) {
@@ -126,6 +124,15 @@ function App() {
 
 		fetchData();
 	}, []);
+
+	// useEffect(() => {
+	// 	const fetchDates = async () => {
+	// 		await fetchData();
+	// 		await fetchDataYesterday();
+	// 	};
+
+	// 	fetchDates();
+	// }, []);
 
 	const convertTimestampToDate = (timestamp, type) => {
 		if (type === 'folder') {
@@ -179,6 +186,32 @@ function App() {
 		}));
 	};
 
+	const filterChangedLayers = () => {
+		// Фильтруем только те сервисы, в которых есть изменения
+		const filteredData = Object.keys(mapsData).reduce((acc, mapKey) => {
+			const hasMismatch = mapsData[mapKey].some((layer) => {
+				const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
+					(yesterdayLayer) => yesterdayLayer.code === layer.code
+				);
+				return (
+					yesterdayLayer?.timestamp &&
+					layer.timestamp &&
+					yesterdayLayer.timestamp !== layer.timestamp
+				);
+			});
+
+			if (hasMismatch) {
+				acc[mapKey] = mapsData[mapKey]; // Сохраняем только те данные, которые были изменены
+			}
+
+			return acc;
+		}, {});
+
+		// Обновляем состояние
+		setFilteredMapsData(filteredData);
+		setIsFiltered(true); // Устанавливаем состояние фильтрации в true
+	};
+
 	if (loading)
 		return (
 			<div className="loading-wrapper">
@@ -207,13 +240,20 @@ function App() {
 					ВекторГИС{' '}
 				</a>{' '}
 			</h1>
-			<div>
-				<button className="sort-button">Переместить измененные вверх</button>
+			<div className="wrapper-button">
+				<button
+					className="sort-button"
+					onClick={
+						isFiltered ? () => setIsFiltered(false) : filterChangedLayers
+					}
+				>
+					{isFiltered ? 'Показать все слои' : 'Показать измененные слои'}
+				</button>
 			</div>
-			{Object.keys(mapsData).length === 0 ? (
+			{Object.keys(isFiltered ? filteredMapsData : mapsData).length === 0 ? (
 				<p>Нет доступных слоев.</p>
 			) : (
-				Object.keys(mapsData).map((mapKey) => {
+				Object.keys(isFiltered ? filteredMapsData : mapsData).map((mapKey) => {
 					const serviceNumber = extractServiceNumber(mapKey);
 					const serviceName = serviceNames[serviceNumber];
 

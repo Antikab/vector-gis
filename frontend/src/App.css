@@ -5,15 +5,11 @@ body {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	min-height: 100vh;
 }
 
 .wrapper {
 	display: flex;
 	flex-direction: column;
-	row-gap: 20px;
-	padding: 25px 50px;
-	box-sizing: border-box;
 }
 
 h1 {
@@ -81,7 +77,6 @@ td.folder {
 }
 
 .accordion-header {
-	gap: 30px;
 	background-color: #3a4d66;
 	color: white;
 	padding: 15px 15px;
@@ -168,12 +163,16 @@ a:hover {
 	flex-wrap: wrap;
 }
 
+.wrapper-button {
+	display: flex;
+	gap: 10px;
+}
+
 .sort-button {
-	padding: 15px 20px;
-	font-size: 1rem;
-	border-radius: 15px;
+	padding: 10px 15px;
+	border-radius: 10px;
 	font-weight: 600;
-	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.253); /* Тень для всего аккордеона */
+	box-shadow: 0 4px 4px rgba(0, 0, 0, 0.253); /* Тень для всего аккордеона */
 	transition: box-shadow 0.3s ease; /* Плавное изменение тени */
 }
 
@@ -225,13 +224,13 @@ button:active {
 /* Адаптивные стили */
 @media (max-width: 2560px) {
 	.wrapper {
-		width: 100%;
+		width: 1200px;
 		padding: 1.5rem;
 	}
 }
 @media (max-width: 1440px) {
 	.wrapper {
-		width: 100%;
+		width: 1000px;
 		padding: 1.5rem;
 	}
 }
@@ -299,7 +298,6 @@ button:active {
 	}
 }
 
-
 /* Выровнять контейнер по центру экрана */
 .loading-wrapper {
 	display: flex;
@@ -324,4 +322,3 @@ button:active {
 	font-size: 16px; /* Можно настроить размер шрифта */
 	color: #333; /* Цвет текста */
 }
-
