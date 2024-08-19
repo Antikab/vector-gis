@@ -1,7 +1,7 @@
 /* Базовые стили */
 body {
 	margin: 0;
-	padding: 0;
+	padding: 10px;
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -52,6 +52,7 @@ tbody:hover {
 .thead-header {
 	background-color: #4975af;
 	user-select: none;
+	vertical-align: top;
 }
 
 .thead-highlight {
@@ -81,7 +82,7 @@ td.folder {
 	border: 1px solid #ddd;
 	border-radius: 15px;
 	overflow: hidden;
-	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Тень для всего аккордеона */
+	box-shadow: 1px 4px 8px rgba(0, 0, 0, 0.1); /* Тень для всего аккордеона */
 	transition: box-shadow 0.3s ease; /* Плавное изменение тени */
 }
 
@@ -192,6 +193,7 @@ a:hover {
 	background: linear-gradient(145deg, #ffffff, #e6e6e6);
 	box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3), -4px -4px 8px rgba(255, 255, 255, 0.7);
 	transition: box-shadow 0.3s ease, transform 0.2s ease; 
+	user-select: none;
 }
 
 .sort-button:hover {
@@ -210,24 +212,33 @@ a:hover {
 button {
 	display: flex;
 	padding: 5px 10px;
-	border: 1px solid #8abaf8;
+	box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.3), -4px -4px 8px rgba(255, 255, 255, 0.15);
+	border: none;
 	border-radius: 8px;
 	background-color: #e8f1fd;
 	color: #4a78c7;
 	cursor: pointer;
 	font-weight: 500;
+	font-size: 14px;
 	transition: all 0.3s ease;
+	user-select: none;
+
 }
 
 .button:hover,
 button:hover {
 	background-color: #8ab4f8;
 	color: white;
+	transform: translateY(-2px);
+
 }
 
 .button:active,
 button:active {
-	background-color: #7aa7e3;
+	background-color: #5b83b8;
+	transform: translateY(2px);
+	
+
 }
 
 .sort-icon.asc::after {
@@ -245,20 +256,24 @@ button:active {
 /* Адаптивные стили */
 @media (max-width: 2560px) {
 	.wrapper {
-		width: 1200px;
-		padding: 1.5rem;
+		width: 1450px;
 	}
 }
 @media (max-width: 1440px) {
 	.wrapper {
-		width: 1000px;
-		padding: 1.5rem;
+		width: 1050px;
+
+	}
+
+	th,
+	td {
+		font-size: 14px;
+		padding: 10px 12px;
 	}
 }
 @media (max-width: 1024px) {
 	.wrapper {
 		width: 100%;
-		padding: 1.5rem;
 	}
 
 	th,
@@ -267,9 +282,7 @@ button:active {
 		padding: 10px 12px;
 	}
 
-	.accordion-header {
-		font-size: 18px;
-	}
+	
 }
 
 @media (max-width: 768px) {
@@ -286,10 +299,7 @@ button:active {
 		padding: 8px;
 	}
 
-	.accordion-header {
-		font-size: 16px;
-		padding: 8px 10px;
-	}
+	
 
 	h1 {
 		font-size: 1.5rem;
@@ -334,12 +344,16 @@ button:active {
 	justify-content: center;
 	align-items: center;
 	text-align: center;
+	font-size: 1.5rem; /* Можно настроить размер шрифта */
+	font-weight: 600;
+	color: #2f5da8;
 	gap: 10px; /* Промежуток между элементами */
+
 }
 
 /* Стилизация текста */
 .loading-container p {
 	margin: 0;
-	font-size: 16px; /* Можно настроить размер шрифта */
-	color: #333; /* Цвет текста */
+	font-size: 1.2rem; /* Можно настроить размер шрифта */
+	color: #424242;
 }
