@@ -245,10 +245,10 @@ function App() {
 				>
 					{isFiltered ? 'Показать все слои' : 'Показать измененные слои'}
 				</button>
-				<input
+				{/* <input
 					type="date"
 					onChange={() => console.log('date')}
-				/>
+				/> */}
 			</div>
 			{Object.keys(isFiltered ? filteredMapsData : mapsData).length === 0 ? (
 				<p>Нет доступных слоев.</p>
@@ -256,6 +256,7 @@ function App() {
 				Object.keys(isFiltered ? filteredMapsData : mapsData).map((mapKey) => {
 					const serviceNumber = extractServiceNumber(mapKey);
 					const serviceName = serviceNames[serviceNumber];
+					const cleanedMapKey = mapKey.replace('map', ''); // Создаем переменную для значения mapKey без "map"
 
 					const hasMismatch = mapsData[mapKey].some((layer) => {
 						const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
@@ -285,10 +286,16 @@ function App() {
 							>
 								<h2>
 									Сервис {''}
-									{serviceName
+									{mapKey !== cleanedMapKey
+										? `${cleanedMapKey}${
+												serviceNames[cleanedMapKey]
+													? ` - ${serviceNames[cleanedMapKey]}`
+													: ''}`
+										: serviceName
 										? `${serviceNumber} - ${serviceName}`
-										: `${mapKey.replace('map', '')}`}
+										: ''}
 								</h2>
+
 								<span className="accordion-indicator"></span>
 							</summary>
 							<div className="accordion-content">
@@ -384,12 +391,12 @@ function App() {
 																>
 																	Скачать
 																</a>
-																<a
+																{/* <a
 																	// href={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
 																	className="button"
 																>
 																	Загрузить в БД
-																</a>
+																</a> */}
 															</div>
 														)}
 													</td>
