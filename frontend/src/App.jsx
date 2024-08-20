@@ -13,6 +13,7 @@ function App() {
 	const [progress, setProgress] = useState(0);
 	const [filteredMapsData, setFilteredMapsData] = useState({});
 	const [isFiltered, setIsFiltered] = useState(false); // добавляем состояние для отслеживания состояния фильтра
+	const [dataFetched, setDataFetched] = useState(false);
 
 	// Функция для извлечения номера из `mapKey`
 	const extractServiceNumber = (mapKey) => {
@@ -25,13 +26,13 @@ function App() {
 		let simulatedProgress = 0;
 		return new Promise((resolve) => {
 			const interval = setInterval(() => {
-				simulatedProgress += 10;
+				simulatedProgress += 5;
 				setProgress(simulatedProgress);
 				if (simulatedProgress >= 100) {
 					clearInterval(interval);
 					resolve();
 				}
-			}, 100);
+			}, 80);
 		});
 	};
 
@@ -88,10 +89,10 @@ function App() {
 			}, {});
 
 			setMapsData(sortedData);
-			setProgress(100); // Установите прогресс в 100% после успешной загрузки
 		} catch (error) {
 			setError('Ошибка загрузки данных');
-			setProgress(100); // Установите прогресс в 100% даже в случае ошибки
+		} finally {
+			setDataFetched(true);
 		}
 	};
 
@@ -103,10 +104,10 @@ function App() {
 			const response = await axios.request(fetchYesterdayDataConfig);
 			setYesterdayMapsData(response.data);
 			// setYesterdayMapsData(testYesterdayData);
-			setProgress(100); // Установите прогресс в 100% после успешной загрузки
 		} catch (error) {
 			setError('Ошибка загрузки данных');
-			setProgress(100); // Установите прогресс в 100% даже в случае ошибки
+		} finally {
+			setDataFetched(true);
 		}
 	};
 
@@ -126,8 +127,12 @@ function App() {
 	// }, []);
 
 	useEffect(() => {
-		fetchData();
-		fetchDataYesterday();
+		const fetchAllData = async () => {
+			await Promise.all([fetchData(), fetchDataYesterday()]);
+			setLoading(false);
+		};
+
+		fetchAllData();
 	}, []);
 
 	const convertTimestampToDate = (timestamp, type) => {
@@ -208,7 +213,7 @@ function App() {
 		setIsFiltered(true); // Устанавливаем состояние фильтрации в true
 	};
 
-	if (loading)
+	if (loading || !dataFetched) {
 		return (
 			<div className="loading-wrapper">
 				<div className="loading-container">
@@ -221,6 +226,7 @@ function App() {
 				</div>
 			</div>
 		);
+	}
 	if (error) return <p>Error: {error}</p>;
 
 	return (
@@ -290,7 +296,8 @@ function App() {
 										? `${cleanedMapKey}${
 												serviceNames[cleanedMapKey]
 													? ` - ${serviceNames[cleanedMapKey]}`
-													: ''}`
+													: ''
+										  }`
 										: serviceName
 										? `${serviceNumber} - ${serviceName}`
 										: ''}

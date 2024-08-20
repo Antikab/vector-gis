@@ -46,7 +46,7 @@ tbody:nth-child(even) {
 
 tbody:hover {
 	background-color: #ffba5375; /* Полупрозрачная подсветка */
-	transition: background-color 0.3s ease;
+	transition: background-color 0.1s ease;
 }
 
 .thead-header {
@@ -83,7 +83,7 @@ td.folder {
 	border-radius: 15px;
 	overflow: hidden;
 	box-shadow: 1px 4px 8px rgba(0, 0, 0, 0.1); /* Тень для всего аккордеона */
-	transition: box-shadow 0.3s ease; /* Плавное изменение тени */
+	transition: box-shadow 0.2s ease; /* Плавное изменение тени */
 }
 
 .accordion-header {
@@ -94,7 +94,7 @@ td.folder {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	transition: background-color 0.3s ease;
+	transition: background-color 0.2s ease;
 	user-select: none;
 }
 
@@ -163,7 +163,7 @@ td.folder {
 
 a {
 	color: #2f5da8;
-	transition: color 0.3s ease;
+	transition: color 0.2s ease;
 	text-decoration: none;
 }
 
@@ -192,7 +192,7 @@ a:hover {
 	color: #505052;
 	background: linear-gradient(145deg, #ffffff, #e6e6e6);
 	box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3), -4px -4px 8px rgba(255, 255, 255, 0.7);
-	transition: box-shadow 0.3s ease, transform 0.2s ease; 
+	transition: box-shadow 0.2s ease, transform 0.2s ease; 
 	user-select: none;
 }
 
@@ -220,7 +220,7 @@ button {
 	cursor: pointer;
 	font-weight: 500;
 	font-size: 14px;
-	transition: all 0.3s ease;
+	transition: all 0.2s ease;
 	user-select: none;
 
 }
