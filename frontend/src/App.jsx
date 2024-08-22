@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import './App.css';
 import serviceNames from './components/serviceNames';
+import * as XLSX from 'xlsx';
+import * as XLSXStyle from 'xlsx-js-style';
 // import { testData, testYesterdayData } from './components/testData';
 
 function App() {
@@ -170,6 +172,7 @@ function App() {
 							?.timestamp;
 
 			if (!aTimestamp) return 1;
+
 			if (!bTimestamp) return -1;
 			return newOrder === 'asc'
 				? aTimestamp - bTimestamp
@@ -229,6 +232,50 @@ function App() {
 	}
 	if (error) return <p>Error: {error}</p>;
 
+	function exportToExcel() {
+		// Создаем новый Workbook
+		const wb = XLSX.utils.book_new();
+
+		// Преобразуем данные из filteredMapsData в массив массивов
+		const sheetData = [];
+
+		// Заголовки таблицы
+		sheetData.push([
+			'Сервис',
+			'Название слоя',
+			'Код слоя',
+			'Вчерашняя дата',
+			'Актуальная дата',
+		]);
+
+		// Перебираем все сервисы и слои, чтобы добавить их в таблицу
+		Object.keys(filteredMapsData).forEach((mapKey) => {
+			filteredMapsData[mapKey].forEach((layer) => {
+				const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
+					(yesterdayLayer) => yesterdayLayer.code === layer.code
+				);
+
+				// Добавляем строку с данными
+				sheetData.push([
+					mapKey, // Сервис
+					layer.name || 'Без названия', // Название слоя
+					layer.code, // Код слоя
+					convertTimestampToDate(yesterdayLayer?.timestamp, layer.type), // Вчерашняя дата
+					convertTimestampToDate(layer.timestamp, layer.type), // Актуальная дата
+				]);
+			});
+		});
+
+		// Создаем лист из массива массивов
+		const ws = XLSX.utils.aoa_to_sheet(sheetData);
+
+		// Добавляем лист в Workbook
+		XLSX.utils.book_append_sheet(wb, ws, 'Filtered Services');
+
+		// Генерация Excel файла и выгрузка
+		XLSX.writeFile(wb, 'filtered_services.xlsx');
+	}
+
 	return (
 		<div className="wrapper">
 			<h1>
@@ -250,6 +297,19 @@ function App() {
 					}
 				>
 					{isFiltered ? 'Показать все слои' : 'Показать измененные слои'}
+				</button>
+				<button
+					className="sort-button"
+					onClick={() => exportToExcel()}
+				>
+					Скачать Excel
+				</button>
+
+				<button
+					className="sort-button"
+					onClick={() => console.log(filteredMapsData)}
+				>
+					log data
 				</button>
 				{/* <input
 					type="date"
