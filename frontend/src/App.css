@@ -40,9 +40,14 @@ td {
 	padding: 12px 15px;
 }
 
-tbody:nth-child(even) {
-	background-color: #8380801e;
+tbody {
+	border-bottom: 1px solid #222224;
 }
+
+/* подсветить строки через одну */
+/* tbody:nth-child(even) {
+	background-color: #cecdcd1e;
+} */
 
 tbody:hover {
 	background-color: #ffba5375; /* Полупрозрачная подсветка */
@@ -60,16 +65,17 @@ tbody:hover {
 	user-select: none;
 }
 
-td.time-null {
-	background-color: #3c426a20;
-}
+/* подсветить значения где "время неизвестно" */
+/* td.time-null {
+	background-color: #97a0dd20;
+} */
 
 td.folder {
-	background-color: #ffae004d;
+	background-color: #ffae0023;
 }
 
 .highlight-row td {
-	background-color: #ff00003b;
+	background-color: #ff00002c;
 }
 
 .highlight-accordion .accordion-header {
@@ -189,30 +195,47 @@ a:hover {
 	font-size: 16px;
 	font-weight: 600;
 	background-color: #e8f1fd;
-	color: #505052;
+	color: #5e5e5e;
 	background: linear-gradient(145deg, #ffffff, #e6e6e6);
-	box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3), -4px -4px 8px rgba(255, 255, 255, 0.7);
-	transition: box-shadow 0.2s ease, transform 0.2s ease; 
+	box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3),
+		-4px -4px 8px rgba(255, 255, 255, 0.7);
+	transition: box-shadow 0.2s ease, transform 0.2s ease;
 	user-select: none;
 }
 
 .sort-button:hover {
-	color: #222224;
-	box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.3), -6px -6px 12px rgba(255, 255, 255, 0.7);
+	color: #242424;
+	box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.3),
+		-6px -6px 12px rgba(255, 255, 255, 0.7);
 	transform: translateY(-2px);
 }
 
 .sort-button:active {
-	box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3), -2px -2px 4px rgba(255, 255, 255, 0.7);
+	box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
+		-2px -2px 4px rgba(255, 255, 255, 0.7);
 	transform: translateY(2px);
 	background: linear-gradient(145deg, #e6e6e6, #ffffff);
+}
+
+.download {
+	background: linear-gradient(145deg, #eaffeb, #cce2ce);
+}
+
+.download:hover {
+	color: #0d5808;
+}
+
+.download:active {
+	background: linear-gradient(145deg, #cce2ce, #eaffeb);
+
 }
 
 .button,
 button {
 	display: flex;
 	padding: 5px 10px;
-	box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.3), -4px -4px 8px rgba(255, 255, 255, 0.15);
+	box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.3),
+		-4px -4px 8px rgba(255, 255, 255, 0.15);
 	border: none;
 	border-radius: 8px;
 	background-color: #e8f1fd;
@@ -222,7 +245,6 @@ button {
 	font-size: 14px;
 	transition: all 0.2s ease;
 	user-select: none;
-
 }
 
 .button:hover,
@@ -230,15 +252,12 @@ button:hover {
 	background-color: #8ab4f8;
 	color: white;
 	transform: translateY(-2px);
-
 }
 
 .button:active,
 button:active {
 	background-color: #5b83b8;
 	transform: translateY(2px);
-	
-
 }
 
 .sort-icon.asc::after {
@@ -262,7 +281,6 @@ button:active {
 @media (max-width: 1440px) {
 	.wrapper {
 		width: 1050px;
-
 	}
 
 	th,
@@ -281,8 +299,6 @@ button:active {
 		font-size: 14px;
 		padding: 10px 12px;
 	}
-
-	
 }
 
 @media (max-width: 768px) {
@@ -298,8 +314,6 @@ button:active {
 		font-size: 12px;
 		padding: 8px;
 	}
-
-	
 
 	h1 {
 		font-size: 1.5rem;
@@ -348,7 +362,6 @@ button:active {
 	font-weight: 600;
 	color: #2f5da8;
 	gap: 10px; /* Промежуток между элементами */
-
 }
 
 /* Стилизация текста */

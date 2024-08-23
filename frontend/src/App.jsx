@@ -234,20 +234,37 @@ function App() {
 	function exportToExcel() {
 		// Создаем новый Workbook
 		const wb = XLSX.utils.book_new();
-	
+
 		// Создаем лист для данных
 		const ws = XLSX.utils.aoa_to_sheet([]);
 		let sheetData = [];
-	
+
 		// Перебираем все сервисы и слои, чтобы добавить их в таблицу
 		Object.keys(filteredMapsData).forEach((mapKey, index) => {
+			// Фильтруем только те слои, у которых есть расхождение в датах
+			const mismatchedLayers = filteredMapsData[mapKey].filter((layer) => {
+				const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
+					(yesterdayLayer) => yesterdayLayer.code === layer.code
+				);
+				return (
+					yesterdayLayer?.timestamp &&
+					layer.timestamp &&
+					yesterdayLayer.timestamp !== layer.timestamp
+				);
+			});
+
+			// Если нет слоев с расхождением, пропускаем этот сервис
+			if (mismatchedLayers.length === 0) {
+				return;
+			}
+
 			// Получаем имя сервиса
 			const serviceNumber = extractServiceNumber(mapKey);
 			const serviceName = serviceNames[serviceNumber] || 'Без названия';
-	
+
 			// Добавляем название сервиса как заголовок
 			sheetData.push([`Сервис ${serviceNumber} - ${serviceName}`]);
-	
+
 			// Добавляем заголовки таблицы для слоев
 			sheetData.push([
 				'Название слоя',
@@ -255,13 +272,13 @@ function App() {
 				'Вчерашняя дата',
 				'Актуальная дата',
 			]);
-	
-			// Добавляем данные для каждого слоя
-			filteredMapsData[mapKey].forEach((layer) => {
+
+			// Добавляем данные для каждого слоя с расхождением в датах
+			mismatchedLayers.forEach((layer) => {
 				const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
 					(yesterdayLayer) => yesterdayLayer.code === layer.code
 				);
-	
+
 				sheetData.push([
 					layer.name || 'Без названия', // Название слоя
 					layer.code, // Код слоя
@@ -269,23 +286,22 @@ function App() {
 					convertTimestampToDate(layer.timestamp, layer.type), // Актуальная дата
 				]);
 			});
-	
+
 			// Добавляем пустую строку для разделения сервисов, если это не последний сервис
 			if (index < Object.keys(filteredMapsData).length - 1) {
 				sheetData.push([]);
 			}
 		});
-	
+
 		// Добавляем данные в лист
 		XLSX.utils.sheet_add_aoa(ws, sheetData);
-	
+
 		// Добавляем лист в Workbook
 		XLSX.utils.book_append_sheet(wb, ws, 'Filtered Services');
-	
+
 		// Генерация Excel файла и выгрузка
 		XLSX.writeFile(wb, 'filtered_services.xlsx');
 	}
-	
 
 	return (
 		<div className="wrapper">
@@ -309,19 +325,21 @@ function App() {
 				>
 					{isFiltered ? 'Показать все слои' : 'Показать измененные слои'}
 				</button>
-				<button
-					className="sort-button"
-					onClick={() => exportToExcel()}
-				>
-					Скачать Excel
-				</button>
+				{isFiltered && (
+					<button
+						className="sort-button download"
+						onClick={() => exportToExcel()}
+					>
+						Скачать Excel
+					</button>
+				)}
 
-				<button
+				{/* <button
 					className="sort-button"
 					onClick={() => console.log(filteredMapsData)}
 				>
 					log data
-				</button>
+				</button> */}
 				{/* <input
 					type="date"
 					onChange={() => console.log('date')}
