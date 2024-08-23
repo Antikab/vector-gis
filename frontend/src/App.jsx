@@ -3,7 +3,6 @@ import axios from 'axios';
 import './App.css';
 import serviceNames from './components/serviceNames';
 import * as XLSX from 'xlsx';
-import * as XLSXStyle from 'xlsx-js-style';
 // import { testData, testYesterdayData } from './components/testData';
 
 function App() {
@@ -235,46 +234,58 @@ function App() {
 	function exportToExcel() {
 		// Создаем новый Workbook
 		const wb = XLSX.utils.book_new();
-
-		// Преобразуем данные из filteredMapsData в массив массивов
-		const sheetData = [];
-
-		// Заголовки таблицы
-		sheetData.push([
-			'Сервис',
-			'Название слоя',
-			'Код слоя',
-			'Вчерашняя дата',
-			'Актуальная дата',
-		]);
-
+	
+		// Создаем лист для данных
+		const ws = XLSX.utils.aoa_to_sheet([]);
+		let sheetData = [];
+	
 		// Перебираем все сервисы и слои, чтобы добавить их в таблицу
-		Object.keys(filteredMapsData).forEach((mapKey) => {
+		Object.keys(filteredMapsData).forEach((mapKey, index) => {
+			// Получаем имя сервиса
+			const serviceNumber = extractServiceNumber(mapKey);
+			const serviceName = serviceNames[serviceNumber] || 'Без названия';
+	
+			// Добавляем название сервиса как заголовок
+			sheetData.push([`Сервис ${serviceNumber} - ${serviceName}`]);
+	
+			// Добавляем заголовки таблицы для слоев
+			sheetData.push([
+				'Название слоя',
+				'Название кода',
+				'Вчерашняя дата',
+				'Актуальная дата',
+			]);
+	
+			// Добавляем данные для каждого слоя
 			filteredMapsData[mapKey].forEach((layer) => {
 				const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
 					(yesterdayLayer) => yesterdayLayer.code === layer.code
 				);
-
-				// Добавляем строку с данными
+	
 				sheetData.push([
-					mapKey, // Сервис
 					layer.name || 'Без названия', // Название слоя
 					layer.code, // Код слоя
 					convertTimestampToDate(yesterdayLayer?.timestamp, layer.type), // Вчерашняя дата
 					convertTimestampToDate(layer.timestamp, layer.type), // Актуальная дата
 				]);
 			});
+	
+			// Добавляем пустую строку для разделения сервисов, если это не последний сервис
+			if (index < Object.keys(filteredMapsData).length - 1) {
+				sheetData.push([]);
+			}
 		});
-
-		// Создаем лист из массива массивов
-		const ws = XLSX.utils.aoa_to_sheet(sheetData);
-
+	
+		// Добавляем данные в лист
+		XLSX.utils.sheet_add_aoa(ws, sheetData);
+	
 		// Добавляем лист в Workbook
 		XLSX.utils.book_append_sheet(wb, ws, 'Filtered Services');
-
+	
 		// Генерация Excel файла и выгрузка
 		XLSX.writeFile(wb, 'filtered_services.xlsx');
 	}
+	
 
 	return (
 		<div className="wrapper">
