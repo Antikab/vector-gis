@@ -376,7 +376,7 @@ function App() {
 						>
 							<summary
 								className={`accordion-header ${
-									hasMismatch ? 'highlight-accordion-open' : ''
+									hasMismatch ? 'highlight-accordion-item' : ''
 								}`}
 							>
 								<h2>

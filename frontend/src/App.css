@@ -40,8 +40,8 @@ td {
 	padding: 12px 15px;
 }
 
-tbody {
-	border-bottom: 1px solid #222224;
+tbody:not(:last-of-type) tr {
+	box-shadow: 1px 2px 3px rgba(0, 0, 0, 0.1);
 }
 
 /* подсветить строки через одну */
@@ -50,7 +50,7 @@ tbody {
 } */
 
 tbody:hover {
-	background-color: #ffba5375; /* Полупрозрачная подсветка */
+	background-color: rgba(0, 0, 0, 0.03); /* Полупрозрачная подсветка */
 	transition: background-color 0.1s ease;
 }
 
@@ -71,11 +71,11 @@ tbody:hover {
 } */
 
 td.folder {
-	background-color: #ffae0023;
+	background-color: hsla(41, 100%, 50%, 0.15);
 }
 
 .highlight-row td {
-	background-color: #ff00002c;
+	background-color: hsla(0, 100%, 50%, 0.2);
 }
 
 .highlight-accordion .accordion-header {
@@ -89,7 +89,14 @@ td.folder {
 	border-radius: 15px;
 	overflow: hidden;
 	box-shadow: 1px 4px 8px rgba(0, 0, 0, 0.1); /* Тень для всего аккордеона */
-	transition: box-shadow 0.2s ease; /* Плавное изменение тени */
+	transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.accordion-item[open] {
+	transform: translateY(2px);
+	box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.3),
+		-6px -6px 12px rgba(255, 255, 255, 0.7);
+	border: 2px solid #645d5d3d;
 }
 
 .accordion-header {
@@ -100,10 +107,12 @@ td.folder {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	transition: background-color 0.2s ease;
 	user-select: none;
 }
 
+.accordion-header:hover {
+	background-color: #3a5b8d;
+}
 .accordion-header h2 {
 	margin: 0;
 }
@@ -157,7 +166,11 @@ td.folder {
 	background-color: #555555;
 }
 
-.accordion-item[open] .highlight-accordion-open {
+.accordion-item[open] .highlight-accordion-item {
+	background-color: #b31616d0;
+}
+
+.highlight-accordion-item:hover {
 	background-color: #b31616d0;
 }
 
@@ -227,7 +240,6 @@ a:hover {
 
 .download:active {
 	background: linear-gradient(145deg, #cce2ce, #eaffeb);
-
 }
 
 .button,
