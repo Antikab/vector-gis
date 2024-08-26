@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+// import axios from 'axios';
 import './App.css';
 import serviceNames from './components/serviceNames';
 import * as XLSX from 'xlsx';
-// import { testData, testYesterdayData } from './components/testData';
+import { testData, testYesterdayData } from './components/testData';
 import {
 	extractServiceNumber,
 	getServiceName,
@@ -37,37 +37,36 @@ function App() {
 		});
 	};
 
-	const fetchDataConfig = {
-		method: 'get',
-		maxBodyLength: Infinity,
-		url: 'http://glavapu-services:3009/todayCache',
+	// const fetchDataConfig = {
+	// 	method: 'get',
+	// 	maxBodyLength: Infinity,
+	// 	url: 'http://glavapu-services:3009/todayCache',
 
-		headers: {},
-	};
+	// 	headers: {},
+	// };
 
-	const fetchYesterdayDataConfig = {
-		method: 'get',
-		maxBodyLength: Infinity,
-		url: 'http://glavapu-services:3009/yesterdayCache',
-		headers: {},
-	};
+	// const fetchYesterdayDataConfig = {
+	// 	method: 'get',
+	// 	maxBodyLength: Infinity,
+	// 	url: 'http://glavapu-services:3009/yesterdayCache',
+	// 	headers: {},
+	// };
 
-	const fetchData = async () => {
-	// const fetchTestData = async () => {
+	// const fetchData = async () => {
+	const fetchTestData = async () => {
 		try {
 			// Симуляция прогресса загрузки
 			await simulateProgress();
 
-			const response = await axios.request(fetchDataConfig);
+			// const response = await axios.request(fetchDataConfig);
 
 			// Сортировка данных: сначала по числовым значениям, затем по строкам
-			// const sortedKeys = Object.keys(response.data).sort((a, b) => {
-			// const sortedKeys = sortKeys(Object.keys(testData), extractServiceNumber);
-			const sortedKeys = sortKeys(Object.keys(response.data), extractServiceNumber);
+			const sortedKeys = sortKeys(Object.keys(testData), extractServiceNumber);
+			// const sortedKeys = sortKeys(Object.keys(response.data), extractServiceNumber);
 
 			const sortedData = sortedKeys.reduce((acc, key) => {
-				acc[key] = response.data[key];
-				// acc[key] = testData[key];
+				// acc[key] = response.data[key];
+				acc[key] = testData[key];
 				return acc;
 			}, {});
 
@@ -79,14 +78,14 @@ function App() {
 		}
 	};
 
-	const fetchDataYesterday = async () => {
-	// const fetchTestDataYesterday = async () => {
+	// const fetchDataYesterday = async () => {
+	const fetchTestDataYesterday = async () => {
 		try {
 			// Симуляция прогресса загрузки
 			await simulateProgress();
-			const response = await axios.request(fetchYesterdayDataConfig);
-			setYesterdayMapsData(response.data);
-			// setYesterdayMapsData(testYesterdayData);
+			// const response = await axios.request(fetchYesterdayDataConfig);
+			// setYesterdayMapsData(response.data);
+			setYesterdayMapsData(testYesterdayData);
 		} catch (error) {
 			setError('Ошибка загрузки данных');
 		} finally {
@@ -100,23 +99,23 @@ function App() {
 		}
 	}, [progress]);
 
-	// useEffect(() => {
-	// 	const fetchData = async () => {
-	// 		await fetchTestData();
-	// 		await fetchTestDataYesterday();
-	// 	};
-
-	// 	fetchData();
-	// }, []);
-
 	useEffect(() => {
-		const fetchAllData = async () => {
-			await Promise.all([fetchData(), fetchDataYesterday()]);
-			setLoading(false);
+		const fetchData = async () => {
+			await fetchTestData();
+			await fetchTestDataYesterday();
 		};
 
-		fetchAllData();
+		fetchData();
 	}, []);
+
+	// useEffect(() => {
+	// 	const fetchAllData = async () => {
+	// 		await Promise.all([fetchData(), fetchDataYesterday()]);
+	// 		setLoading(false);
+	// 	};
+
+	// 	fetchAllData();
+	// }, []);
 
 	const handleSort = (mapKey, sortBy) => {
 		const currentOrder = sortOrders[mapKey] || 'asc';
