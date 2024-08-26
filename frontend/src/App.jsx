@@ -244,6 +244,8 @@ function App() {
 		XLSX.writeFile(wb, 'filtered_services.xlsx');
 	}
 
+	// ----------------------------------------------------------------------------
+	// ----------------------------------------------------------------------------
 	return (
 		<div className="wrapper">
 			<h1>
@@ -275,14 +277,20 @@ function App() {
 						Скачать Excel
 					</button>
 				)}
-
-				<input
-					type="date"
-					value={date} // Устанавливаем значение по умолчанию
-					min="2024-08-26" // Установите минимальную дату, если нужно
-					max={today} // Максимум сегодняшняя дата
-					onChange={handleDate}
-				/>
+				<div className="date-picker-wrapper">
+					<input
+						id="date-picker"
+						type="date"
+						value={date}
+						min="2024-08-26"
+						max={today}
+						onChange={handleDate}
+					/>
+					<div
+						onClick={() => document.getElementById('date-picker').showPicker()}
+						className="calendar-icon"
+					></div>
+				</div>
 
 				{progress > 0 && progress < 100 && (
 					<div className="loading-indicator">
