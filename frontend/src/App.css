@@ -10,12 +10,12 @@ body {
 .wrapper {
 	display: flex;
 	flex-direction: column;
+	row-gap: 30px;
 }
 
 h1 {
 	font-size: 2rem;
 	color: #222224;
-	margin-bottom: 20px;
 	text-align: center;
 }
 
@@ -84,7 +84,6 @@ td.folder {
 
 /* Стили для аккордеона */
 .accordion-item {
-	margin-top: 30px;
 	border: 1px solid #ddd;
 	border-radius: 15px;
 	overflow: hidden;
@@ -93,7 +92,7 @@ td.folder {
 }
 
 .accordion-item[open] {
-	transform: translateY(2px);
+	transform: scale(101%);
 	box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.3),
 		-6px -6px 12px rgba(255, 255, 255, 0.7);
 	border: 2px solid #645d5d3d;
@@ -318,7 +317,7 @@ button:active {
 		width: 100%;
 
 		padding: 1rem;
-		row-gap: 10px;
+		row-gap: 20px;
 	}
 
 	th,
@@ -328,7 +327,7 @@ button:active {
 	}
 
 	h1 {
-		font-size: 1.5rem;
+		font-size: 1.7rem;
 	}
 }
 
@@ -336,7 +335,7 @@ button:active {
 	.wrapper {
 		width: 100%;
 		padding: 0.5rem;
-		row-gap: 5px;
+		row-gap: 15px;
 	}
 
 	th,
@@ -348,10 +347,6 @@ button:active {
 	.accordion-header {
 		font-size: 14px;
 		padding: 6px 8px;
-	}
-
-	h1 {
-		font-size: 1.2rem;
 	}
 }
 

@@ -4,7 +4,12 @@ import './App.css';
 import serviceNames from './components/serviceNames';
 import * as XLSX from 'xlsx';
 import { testData, testYesterdayData } from './components/testData';
-
+import {
+	extractServiceNumber,
+	sortKeys,
+	checkForMismatch,
+	convertTimestampToDate,
+} from './components/utils';
 function App() {
 	const [mapsData, setMapsData] = useState({});
 	const [yesterdayMapsData, setYesterdayMapsData] = useState({});
@@ -15,12 +20,6 @@ function App() {
 	const [filteredMapsData, setFilteredMapsData] = useState({});
 	const [isFiltered, setIsFiltered] = useState(false); // добавляем состояние для отслеживания состояния фильтра
 	const [dataFetched, setDataFetched] = useState(false);
-
-	// Функция для извлечения номера из `mapKey`
-	const extractServiceNumber = (mapKey) => {
-		const match = mapKey.match(/\d+/);
-		return match ? parseInt(match[0], 10) : null;
-	};
 
 	// Функция для симуляции прогресса загрузки
 	const simulateProgress = () => {
@@ -62,24 +61,7 @@ function App() {
 
 			// Сортировка данных: сначала по числовым значениям, затем по строкам
 			// const sortedKeys = Object.keys(response.data).sort((a, b) => {
-			const sortedKeys = Object.keys(testData).sort((a, b) => {
-				const aNumber = extractServiceNumber(a);
-				const bNumber = extractServiceNumber(b);
-
-				if (aNumber !== null && bNumber !== null) {
-					// Если оба ключа содержат числа, сортируем по ним
-					return aNumber - bNumber;
-				} else if (aNumber !== null) {
-					// Если только aNumber существует, он идет раньше
-					return -1;
-				} else if (bNumber !== null) {
-					// Если только bNumber существует, он идет раньше
-					return 1;
-				} else {
-					// Если оба значения не числовые, сортируем их как строки
-					return a.localeCompare(b);
-				}
-			});
+			const sortedKeys = sortKeys(Object.keys(testData), extractServiceNumber);
 
 			const sortedData = sortedKeys.reduce((acc, key) => {
 				// acc[key] = response.data[key];
@@ -134,24 +116,6 @@ function App() {
 	// 	fetchAllData();
 	// }, []);
 
-	const convertTimestampToDate = (timestamp, type) => {
-		if (type === 'folder') {
-			return null; // Для типа folder не возвращаем ничего
-		}
-		if (!timestamp || timestamp === 0) {
-			return 'время неизвестно';
-		}
-		const date = new Date(timestamp * 1000);
-		return date.toLocaleString('ru-RU', {
-			day: '2-digit',
-			month: '2-digit',
-			year: 'numeric',
-			hour: '2-digit',
-			minute: '2-digit',
-			second: '2-digit',
-		});
-	};
-
 	const handleSort = (mapKey, sortBy) => {
 		const currentOrder = sortOrders[mapKey] || 'asc';
 		const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
@@ -194,11 +158,7 @@ function App() {
 				const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
 					(yesterdayLayer) => yesterdayLayer.code === layer.code
 				);
-				return (
-					yesterdayLayer?.timestamp &&
-					layer.timestamp &&
-					yesterdayLayer.timestamp !== layer.timestamp
-				);
+				return checkForMismatch(layer, yesterdayLayer);
 			});
 
 			if (hasMismatch) {
@@ -244,11 +204,7 @@ function App() {
 				const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
 					(yesterdayLayer) => yesterdayLayer.code === layer.code
 				);
-				return (
-					yesterdayLayer?.timestamp &&
-					layer.timestamp &&
-					yesterdayLayer.timestamp !== layer.timestamp
-				);
+				return checkForMismatch(layer, yesterdayLayer);
 			});
 
 			// Если нет слоев с расхождением, пропускаем этот сервис
@@ -326,7 +282,7 @@ function App() {
 				{isFiltered && (
 					<button
 						className="sort-button download"
-						onClick={() => exportToExcel()}
+						onClick={exportToExcel}
 					>
 						Скачать Excel
 					</button>
@@ -355,11 +311,7 @@ function App() {
 						const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
 							(yesterdayLayer) => yesterdayLayer.code === layer.code
 						);
-						return (
-							yesterdayLayer?.timestamp &&
-							layer.timestamp &&
-							yesterdayLayer.timestamp !== layer.timestamp
-						);
+						return checkForMismatch(layer, yesterdayLayer);
 					});
 
 					const hasValidTimestamp = mapsData[mapKey].some(
@@ -435,14 +387,15 @@ function App() {
 											(yesterdayLayer) => yesterdayLayer.code === layer.code
 										);
 
-										const hasDateMismatch =
-											yesterdayLayer?.timestamp &&
-											layer.timestamp &&
-											yesterdayLayer.timestamp !== layer.timestamp;
-
 										return (
 											<tbody key={layer.id || `${mapKey}-${layer.code}`}>
-												<tr className={hasDateMismatch ? 'highlight-row' : ''}>
+												<tr
+													className={
+														checkForMismatch(layer, yesterdayLayer)
+															? 'highlight-row'
+															: ''
+													}
+												>
 													<td>{layer.name || 'Без названия'}</td>
 													<td
 														className={layer.type === 'folder' ? 'folder' : ''}
