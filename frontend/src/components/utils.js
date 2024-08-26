@@ -1,7 +1,22 @@
-	// Функция для извлечения номера из `mapKey`
-  export const extractServiceNumber = (mapKey) => {
+// Функция для извлечения номера из `mapKey`
+export const extractServiceNumber = (mapKey) => {
 	const match = mapKey.match(/\d+/);
 	return match ? parseInt(match[0], 10) : null;
+};
+
+// Функция для получения полного имени сервиса
+export const getServiceName = (mapKey, serviceNames) => {
+	const cleanedMapKey = mapKey.replace('map', '');
+	const serviceNumber = extractServiceNumber(mapKey);
+	const serviceName = serviceNames[serviceNumber];
+
+	return mapKey !== cleanedMapKey
+		? `Сервис ${cleanedMapKey}${
+				serviceNames[cleanedMapKey] ? ` - ${serviceNames[cleanedMapKey]}` : ''
+		  }`
+		: serviceName
+		? `${serviceNumber} - ${serviceName}`
+		: '';
 };
 
 export const sortKeys = (keys, extractServiceNumber) => {

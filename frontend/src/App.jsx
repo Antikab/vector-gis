@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-// import axios from 'axios';
+import axios from 'axios';
 import './App.css';
 import serviceNames from './components/serviceNames';
 import * as XLSX from 'xlsx';
-import { testData, testYesterdayData } from './components/testData';
+// import { testData, testYesterdayData } from './components/testData';
 import {
 	extractServiceNumber,
+	getServiceName,
 	sortKeys,
 	checkForMismatch,
 	convertTimestampToDate,
@@ -36,36 +37,37 @@ function App() {
 		});
 	};
 
-	// const fetchDataConfig = {
-	// 	method: 'get',
-	// 	maxBodyLength: Infinity,
-	// 	url: 'http://glavapu-services:3009/todayCache',
+	const fetchDataConfig = {
+		method: 'get',
+		maxBodyLength: Infinity,
+		url: 'http://glavapu-services:3009/todayCache',
 
-	// 	headers: {},
-	// };
+		headers: {},
+	};
 
-	// const fetchYesterdayDataConfig = {
-	// 	method: 'get',
-	// 	maxBodyLength: Infinity,
-	// 	url: 'http://glavapu-services:3009/yesterdayCache',
-	// 	headers: {},
-	// };
+	const fetchYesterdayDataConfig = {
+		method: 'get',
+		maxBodyLength: Infinity,
+		url: 'http://glavapu-services:3009/yesterdayCache',
+		headers: {},
+	};
 
-	// const fetchData = async () => {
-	const fetchTestData = async () => {
+	const fetchData = async () => {
+	// const fetchTestData = async () => {
 		try {
 			// Симуляция прогресса загрузки
 			await simulateProgress();
 
-			// const response = await axios.request(fetchDataConfig);
+			const response = await axios.request(fetchDataConfig);
 
 			// Сортировка данных: сначала по числовым значениям, затем по строкам
 			// const sortedKeys = Object.keys(response.data).sort((a, b) => {
-			const sortedKeys = sortKeys(Object.keys(testData), extractServiceNumber);
+			// const sortedKeys = sortKeys(Object.keys(testData), extractServiceNumber);
+			const sortedKeys = sortKeys(Object.keys(response.data), extractServiceNumber);
 
 			const sortedData = sortedKeys.reduce((acc, key) => {
-				// acc[key] = response.data[key];
-				acc[key] = testData[key];
+				acc[key] = response.data[key];
+				// acc[key] = testData[key];
 				return acc;
 			}, {});
 
@@ -77,14 +79,14 @@ function App() {
 		}
 	};
 
-	// const fetchDataYesterday = async () => {
-	const fetchTestDataYesterday = async () => {
+	const fetchDataYesterday = async () => {
+	// const fetchTestDataYesterday = async () => {
 		try {
 			// Симуляция прогресса загрузки
 			await simulateProgress();
-			// const response = await axios.request(fetchYesterdayDataConfig);
-			// setYesterdayMapsData(response.data);
-			setYesterdayMapsData(testYesterdayData);
+			const response = await axios.request(fetchYesterdayDataConfig);
+			setYesterdayMapsData(response.data);
+			// setYesterdayMapsData(testYesterdayData);
 		} catch (error) {
 			setError('Ошибка загрузки данных');
 		} finally {
@@ -98,23 +100,23 @@ function App() {
 		}
 	}, [progress]);
 
-	useEffect(() => {
-		const fetchData = async () => {
-			await fetchTestData();
-			await fetchTestDataYesterday();
-		};
-
-		fetchData();
-	}, []);
-
 	// useEffect(() => {
-	// 	const fetchAllData = async () => {
-	// 		await Promise.all([fetchData(), fetchDataYesterday()]);
-	// 		setLoading(false);
+	// 	const fetchData = async () => {
+	// 		await fetchTestData();
+	// 		await fetchTestDataYesterday();
 	// 	};
 
-	// 	fetchAllData();
+	// 	fetchData();
 	// }, []);
+
+	useEffect(() => {
+		const fetchAllData = async () => {
+			await Promise.all([fetchData(), fetchDataYesterday()]);
+			setLoading(false);
+		};
+
+		fetchAllData();
+	}, []);
 
 	const handleSort = (mapKey, sortBy) => {
 		const currentOrder = sortOrders[mapKey] || 'asc';
@@ -195,59 +197,64 @@ function App() {
 
 		// Создаем лист для данных
 		const ws = XLSX.utils.aoa_to_sheet([]);
-		let sheetData = [];
 
 		// Перебираем все сервисы и слои, чтобы добавить их в таблицу
-		Object.keys(filteredMapsData).forEach((mapKey, index) => {
-			// Фильтруем только те слои, у которых есть расхождение в датах
-			const mismatchedLayers = filteredMapsData[mapKey].filter((layer) => {
-				const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
-					(yesterdayLayer) => yesterdayLayer.code === layer.code
-				);
-				return checkForMismatch(layer, yesterdayLayer);
-			});
+		const sheetData = Object.keys(filteredMapsData).reduce(
+			(acc, mapKey, index, arr) => {
+				// Фильтруем только те слои, у которых есть расхождение в датах
+				const mismatchedLayers = filteredMapsData[mapKey].filter((layer) => {
+					const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
+						(yesterdayLayer) => yesterdayLayer.code === layer.code
+					);
+					return checkForMismatch(layer, yesterdayLayer);
+				});
 
-			// Если нет слоев с расхождением, пропускаем этот сервис
-			if (mismatchedLayers.length === 0) {
-				return;
-			}
+				// Если нет слоев с расхождением, пропускаем этот сервис
+				if (mismatchedLayers.length === 0) {
+					return acc;
+				}
 
-			// Получаем имя сервиса
-			const serviceNumber = extractServiceNumber(mapKey);
-			const serviceName = serviceNames[serviceNumber] || 'Без названия';
+				// Получаем имя сервиса
+				const serviceName = getServiceName(mapKey, serviceNames);
 
-			// Добавляем название сервиса как заголовок
-			sheetData.push([`Сервис ${serviceNumber} - ${serviceName}`]);
 
-			// Добавляем заголовки таблицы для слоев
-			sheetData.push([
-				'Название слоя',
-				'Название кода',
-				'Вчерашняя дата',
-				'Актуальная дата',
-			]);
+				// Добавляем название сервиса как заголовок
+				acc.push([serviceName]);
 
-			// Добавляем данные для каждого слоя с расхождением в датах
-			mismatchedLayers.forEach((layer) => {
-				const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
-					(yesterdayLayer) => yesterdayLayer.code === layer.code
-				);
-
-				sheetData.push([
-					layer.name || 'Без названия', // Название слоя
-					layer.code, // Код слоя
-					convertTimestampToDate(yesterdayLayer?.timestamp, layer.type), // Вчерашняя дата
-					convertTimestampToDate(layer.timestamp, layer.type), // Актуальная дата
+				// Добавляем заголовки таблицы для слоев
+				acc.push([
+					'Название слоя',
+					'Название кода',
+					'Вчерашняя дата',
+					'Актуальная дата',
 				]);
-			});
 
-			// Добавляем пустую строку для разделения сервисов, если это не последний сервис
-			if (index < Object.keys(filteredMapsData).length - 1) {
-				sheetData.push([]);
-			}
-		});
+				// Добавляем данные для каждого слоя с расхождением в датах
+				mismatchedLayers.forEach((layer) => {
+					const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
+						(yesterdayLayer) => yesterdayLayer.code === layer.code
+					);
+
+					acc.push([
+						layer.name || 'Без названия', // Название слоя
+						layer.code, // Код слоя
+						convertTimestampToDate(yesterdayLayer?.timestamp, layer.type), // Вчерашняя дата
+						convertTimestampToDate(layer.timestamp, layer.type), // Актуальная дата
+					]);
+				});
+
+				// Добавляем пустую строку для разделения сервисов, если это не последний сервис
+				if (index < arr.length - 1) {
+					acc.push([]);
+				}
+
+				return acc;
+			},
+			[]
+		);
 
 		// Добавляем данные в лист
+
 		XLSX.utils.sheet_add_aoa(ws, sheetData);
 
 		// Добавляем лист в Workbook
@@ -303,10 +310,7 @@ function App() {
 				<p>Нет доступных слоев.</p>
 			) : (
 				Object.keys(isFiltered ? filteredMapsData : mapsData).map((mapKey) => {
-					const serviceNumber = extractServiceNumber(mapKey);
-					const serviceName = serviceNames[serviceNumber];
-					const cleanedMapKey = mapKey.replace('map', ''); // Создаем переменную для значения mapKey без "map"
-
+					const serviceName = getServiceName(mapKey, serviceNames);
 					const hasMismatch = mapsData[mapKey].some((layer) => {
 						const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
 							(yesterdayLayer) => yesterdayLayer.code === layer.code
@@ -329,19 +333,7 @@ function App() {
 									hasMismatch ? 'highlight-accordion-item' : ''
 								}`}
 							>
-								<h2>
-									Сервис {''}
-									{mapKey !== cleanedMapKey
-										? `${cleanedMapKey}${
-												serviceNames[cleanedMapKey]
-													? ` - ${serviceNames[cleanedMapKey]}`
-													: ''
-										  }`
-										: serviceName
-										? `${serviceNumber} - ${serviceName}`
-										: ''}
-								</h2>
-
+								<h2>{serviceName}</h2>
 								<span className="accordion-indicator"></span>
 							</summary>
 							<div className="accordion-content">
