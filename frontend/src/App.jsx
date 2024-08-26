@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
 // import axios from 'axios';
+import { useState, useEffect } from 'react';
 import './App.css';
-import serviceNames from './components/serviceNames';
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 import { testData, testYesterdayData } from './components/testData';
+import serviceNames from './components/serviceNames';
 import {
 	extractServiceNumber,
 	getServiceName,
@@ -216,9 +216,11 @@ function App() {
 				// Получаем имя сервиса
 				const serviceName = getServiceName(mapKey, serviceNames);
 
-
 				// Добавляем название сервиса как заголовок
-				acc.push([serviceName]);
+				acc.push([serviceName, '', '', '']);
+				ws["!merges"] = [
+					{ s: { c: 0, r: 0 }, e: { c: 3, r: 0 } },  // A1:D1
+				];
 
 				// Добавляем заголовки таблицы для слоев
 				acc.push([
@@ -244,7 +246,7 @@ function App() {
 
 				// Добавляем пустую строку для разделения сервисов, если это не последний сервис
 				if (index < arr.length - 1) {
-					acc.push([]);
+					acc.push([], [], []);
 				}
 
 				return acc;
@@ -253,8 +255,16 @@ function App() {
 		);
 
 		// Добавляем данные в лист
-
 		XLSX.utils.sheet_add_aoa(ws, sheetData);
+
+		// Применение стилей к колонкам
+		const wsCols = [
+			{ wch: 80 }, // Ширина для колонки "Название слоя"
+			{ wch: 35 }, // Ширина для колонки "Название кода"
+			{ wch: 25 }, // Ширина для колонки "Вчерашняя дата"
+			{ wch: 25 }, // Ширина для колонки "Актуальная дата"
+		];
+		ws['!cols'] = wsCols;
 
 		// Добавляем лист в Workbook
 		XLSX.utils.book_append_sheet(wb, ws, 'Filtered Services');
