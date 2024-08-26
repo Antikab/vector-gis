@@ -92,7 +92,6 @@ td.folder {
 }
 
 .accordion-item[open] {
-	transform: scale(101%);
 	box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.3),
 		-6px -6px 12px rgba(255, 255, 255, 0.7);
 	border: 2px solid #645d5d3d;
@@ -197,7 +196,9 @@ a:hover {
 
 .wrapper-button {
 	display: flex;
-	gap: 10px;
+	gap: 30px;
+	flex-wrap: wrap;
+	height: 40px;
 }
 
 .sort-button {
@@ -219,13 +220,11 @@ a:hover {
 	color: #242424;
 	box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.3),
 		-6px -6px 12px rgba(255, 255, 255, 0.7);
-	transform: translateY(-2px);
 }
 
 .sort-button:active {
 	box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
 		-2px -2px 4px rgba(255, 255, 255, 0.7);
-	transform: translateY(2px);
 	background: linear-gradient(145deg, #e6e6e6, #ffffff);
 }
 
@@ -262,13 +261,11 @@ button {
 button:hover {
 	background-color: #8ab4f8;
 	color: white;
-	transform: translateY(-2px);
 }
 
 .button:active,
 button:active {
 	background-color: #5b83b8;
-	transform: translateY(2px);
 }
 
 .sort-icon.asc::after {
@@ -371,9 +368,10 @@ button:active {
 	gap: 10px; /* Промежуток между элементами */
 }
 
-/* Стилизация текста */
-.loading-container p {
-	margin: 0;
-	font-size: 1.2rem; /* Можно настроить размер шрифта */
-	color: #424242;
+.loading-indicator {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 40px; /* Фиксированная высота индикатора загрузки */
+	gap: 10px;
 }

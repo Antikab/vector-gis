@@ -1,8 +1,8 @@
-// import axios from 'axios';
+import axios from 'axios';
 import { useState, useEffect } from 'react';
 import './App.css';
 import * as XLSX from 'xlsx-js-style';
-import { testData, testYesterdayData } from './components/testData';
+// import { testData, testYesterdayData } from './components/testData';
 import serviceNames from './components/serviceNames';
 import {
 	extractServiceNumber,
@@ -11,18 +11,18 @@ import {
 	checkForMismatch,
 	convertTimestampToDate,
 } from './components/utils';
+
 function App() {
 	const [mapsData, setMapsData] = useState({});
 	const [yesterdayMapsData, setYesterdayMapsData] = useState({});
 	const [sortOrders, setSortOrders] = useState({});
 	const [error, setError] = useState(null);
-	const [loading, setLoading] = useState(true);
 	const [progress, setProgress] = useState(0);
 	const [filteredMapsData, setFilteredMapsData] = useState({});
-	const [isFiltered, setIsFiltered] = useState(false); // добавляем состояние для отслеживания состояния фильтра
-	const [dataFetched, setDataFetched] = useState(false);
+	const [isFiltered, setIsFiltered] = useState(false);
+	const [loading, setLoading] = useState(true); // Объединено состояние загрузки
+	const [date, setDate] = useState(''); // Состояние для даты
 
-	// Функция для симуляции прогресса загрузки
 	const simulateProgress = () => {
 		let simulatedProgress = 0;
 		return new Promise((resolve) => {
@@ -37,85 +37,59 @@ function App() {
 		});
 	};
 
-	// const fetchDataConfig = {
-	// 	method: 'get',
-	// 	maxBodyLength: Infinity,
-	// 	url: 'http://glavapu-services:3009/todayCache',
-
-	// 	headers: {},
-	// };
-
-	// const fetchYesterdayDataConfig = {
-	// 	method: 'get',
-	// 	maxBodyLength: Infinity,
-	// 	url: 'http://glavapu-services:3009/yesterdayCache',
-	// 	headers: {},
-	// };
-
-	// const fetchData = async () => {
-	const fetchTestData = async () => {
+	const fetchData = async () => {
 		try {
-			// Симуляция прогресса загрузки
 			await simulateProgress();
-
-			// const response = await axios.request(fetchDataConfig);
-
-			// Сортировка данных: сначала по числовым значениям, затем по строкам
-			const sortedKeys = sortKeys(Object.keys(testData), extractServiceNumber);
-			// const sortedKeys = sortKeys(Object.keys(response.data), extractServiceNumber);
-
+			const response = await axios.get(
+				'http://glavapu-services:3009/todayCache'
+			);
+			const sortedKeys = sortKeys(
+				Object.keys(response.data),
+				extractServiceNumber
+			);
 			const sortedData = sortedKeys.reduce((acc, key) => {
-				// acc[key] = response.data[key];
-				acc[key] = testData[key];
+				acc[key] = response.data[key];
 				return acc;
 			}, {});
-
 			setMapsData(sortedData);
 		} catch (error) {
 			setError('Ошибка загрузки данных');
-		} finally {
-			setDataFetched(true);
 		}
 	};
 
-	// const fetchDataYesterday = async () => {
-	const fetchTestDataYesterday = async () => {
+	const fetchYesterdayData = async () => {
 		try {
-			// Симуляция прогресса загрузки
 			await simulateProgress();
-			// const response = await axios.request(fetchYesterdayDataConfig);
-			// setYesterdayMapsData(response.data);
-			setYesterdayMapsData(testYesterdayData);
+			const response = await axios.get(
+				'http://glavapu-services:3009/yesterdayCache'
+			);
+			setYesterdayMapsData(response.data);
 		} catch (error) {
 			setError('Ошибка загрузки данных');
-		} finally {
-			setDataFetched(true);
+		}
+	};
+
+	const handleDate = async (e) => {
+		setDate(e.target.value); // Обновляем состояние даты
+		try {
+			await simulateProgress();
+			const response = await axios.get(
+				`http://glavapu-services:3009/getCacheByDate/${e.target.value}`
+			);
+			setYesterdayMapsData(response.data);
+		} catch (error) {
+			console.log(error);
+			setYesterdayMapsData({});
 		}
 	};
 
 	useEffect(() => {
-		if (progress === 100) {
+		const fetchAllData = async () => {
+			await Promise.all([fetchData(), fetchYesterdayData()]);
 			setLoading(false);
-		}
-	}, [progress]);
-
-	useEffect(() => {
-		const fetchData = async () => {
-			await fetchTestData();
-			await fetchTestDataYesterday();
 		};
-
-		fetchData();
+		fetchAllData();
 	}, []);
-
-	// useEffect(() => {
-	// 	const fetchAllData = async () => {
-	// 		await Promise.all([fetchData(), fetchDataYesterday()]);
-	// 		setLoading(false);
-	// 	};
-
-	// 	fetchAllData();
-	// }, []);
 
 	const handleSort = (mapKey, sortBy) => {
 		const currentOrder = sortOrders[mapKey] || 'asc';
@@ -153,7 +127,6 @@ function App() {
 	};
 
 	const filterChangedLayers = () => {
-		// Фильтруем только те сервисы, в которых есть изменения
 		const filteredData = Object.keys(mapsData).reduce((acc, mapKey) => {
 			const hasMismatch = mapsData[mapKey].some((layer) => {
 				const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
@@ -163,18 +136,17 @@ function App() {
 			});
 
 			if (hasMismatch) {
-				acc[mapKey] = mapsData[mapKey]; // Сохраняем только те данные, которые были изменены
+				acc[mapKey] = mapsData[mapKey];
 			}
 
 			return acc;
 		}, {});
 
-		// Обновляем состояние
 		setFilteredMapsData(filteredData);
-		setIsFiltered(true); // Устанавливаем состояние фильтрации в true
+		setIsFiltered(true);
 	};
 
-	if (loading || !dataFetched) {
+	if (loading) {
 		return (
 			<div className="loading-wrapper">
 				<div className="loading-container">
@@ -188,6 +160,7 @@ function App() {
 			</div>
 		);
 	}
+
 	if (error) return <p>Error: {error}</p>;
 
 	function exportToExcel() {
@@ -218,8 +191,8 @@ function App() {
 
 				// Добавляем название сервиса как заголовок
 				acc.push([serviceName, '', '', '']);
-				ws["!merges"] = [
-					{ s: { c: 0, r: 0 }, e: { c: 3, r: 0 } },  // A1:D1
+				ws['!merges'] = [
+					{ s: { c: 0, r: 0 }, e: { c: 3, r: 0 } }, // A1:D1
 				];
 
 				// Добавляем заголовки таблицы для слоев
@@ -304,16 +277,21 @@ function App() {
 					</button>
 				)}
 
-				{/* <button
-					className="sort-button"
-					onClick={() => console.log(filteredMapsData)}
-				>
-					log data
-				</button> */}
-				{/* <input
+				<input
 					type="date"
-					onChange={() => console.log('date')}
-				/> */}
+					min="2024-08-26"
+					//max currentdate
+					onChange={handleDate}
+				/>
+				{progress > 0 && (
+					<div className="loading-indicator">
+						<progress
+							value={progress}
+							max="100"
+						/>
+						<span>{progress}%</span>
+					</div>
+				)}
 			</div>
 			{Object.keys(isFiltered ? filteredMapsData : mapsData).length === 0 ? (
 				<p>Нет доступных слоев.</p>
