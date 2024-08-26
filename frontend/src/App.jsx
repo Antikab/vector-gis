@@ -21,20 +21,18 @@ function App() {
 	const [filteredMapsData, setFilteredMapsData] = useState({});
 	const [isFiltered, setIsFiltered] = useState(false);
 	const [loading, setLoading] = useState(true); // Объединено состояние загрузки
-	const [date, setDate] = useState(''); // Состояние для даты
 
-	const simulateProgress = () => {
+	const today = new Date().toISOString().split('T')[0];
+	const [date, setDate] = useState(today);
+
+	const simulateProgress = async () => {
 		let simulatedProgress = 0;
-		return new Promise((resolve) => {
-			const interval = setInterval(() => {
-				simulatedProgress += 5;
-				setProgress(simulatedProgress);
-				if (simulatedProgress >= 100) {
-					clearInterval(interval);
-					resolve();
-				}
-			}, 80);
-		});
+
+		while (simulatedProgress < 100) {
+			await new Promise((resolve) => setTimeout(resolve, 80));
+			simulatedProgress += 5;
+			setProgress(simulatedProgress);
+		}
 	};
 
 	const fetchData = async () => {
@@ -259,6 +257,7 @@ function App() {
 					ВекторГИС{' '}
 				</a>{' '}
 			</h1>
+
 			<div className="wrapper-button">
 				<button
 					className="sort-button"
@@ -279,11 +278,13 @@ function App() {
 
 				<input
 					type="date"
-					min="2024-08-26"
-					//max currentdate
+					value={date} // Устанавливаем значение по умолчанию
+					min="2024-08-26" // Установите минимальную дату, если нужно
+					max={today} // Максимум сегодняшняя дата
 					onChange={handleDate}
 				/>
-				{progress > 0 && (
+
+				{progress > 0 && progress < 100 && (
 					<div className="loading-indicator">
 						<progress
 							value={progress}
