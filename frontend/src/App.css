@@ -413,4 +413,5 @@ button:active {
 	height: 24px;
 	background: url('./icons/calendar.svg') no-repeat center center;
 	background-size: contain;
+	cursor: pointer;
 }
