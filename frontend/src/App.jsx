@@ -23,8 +23,11 @@ function App() {
 	const [loading, setLoading] = useState(true); // Объединено состояние загрузки
 
 	const today = new Date().toISOString().split('T')[0];
-	const [date, setDate] = useState(today);
+	const [date, setDate] = useState('');
 
+	const formattedDate = date.split('-').reverse().join('.');// Форматирование выбранной даты
+	const displayText = formattedDate ? formattedDate : 'Вчерашняя дата';
+	
 	const simulateProgress = async () => {
 		let simulatedProgress = 0;
 
@@ -68,18 +71,19 @@ function App() {
 	};
 
 	const handleDate = async (e) => {
-		setDate(e.target.value); // Обновляем состояние даты
-		try {
-			await simulateProgress();
-			const response = await axios.get(
-				`http://glavapu-services:3009/getCacheByDate/${e.target.value}`
-			);
-			setYesterdayMapsData(response.data);
-		} catch (error) {
-			console.log(error);
-			setYesterdayMapsData({});
-		}
-	};
+    const selectedDate = e.target.value;
+    setDate(selectedDate); // Обновляем состояние даты
+    try {
+        await simulateProgress();
+        const response = await axios.get(
+            `http://glavapu-services:3009/getCacheByDate/${selectedDate}`
+        );
+        setYesterdayMapsData(response.data);
+    } catch (error) {
+        console.log(error);
+        setYesterdayMapsData({});
+    }
+};
 
 	useEffect(() => {
 		const fetchAllData = async () => {
@@ -282,6 +286,7 @@ function App() {
 						id="date-picker"
 						type="date"
 						value={date}
+						
 						min="2024-08-26"
 						max={today}
 						onChange={handleDate}
@@ -344,7 +349,7 @@ function App() {
 											<th>Название кода</th>
 											<th>
 												<div className="wrapper-date">
-													<span>Вчерашняя дата</span>
+													<span>{displayText}&nbsp;&nbsp;&nbsp;</span>
 													{hasValidTimestamp &&
 														yesterdayMapsData[mapKey]?.length > 2 && (
 															<button
