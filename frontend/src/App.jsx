@@ -25,9 +25,9 @@ function App() {
 	const today = new Date().toISOString().split('T')[0];
 	const [date, setDate] = useState('');
 
-	const formattedDate = date.split('-').reverse().join('.');// Форматирование выбранной даты
+	const formattedDate = date.split('-').reverse().join('.'); // Форматирование выбранной даты
 	const displayText = formattedDate ? formattedDate : 'Вчерашняя дата';
-	
+
 	const simulateProgress = async () => {
 		let simulatedProgress = 0;
 
@@ -71,19 +71,19 @@ function App() {
 	};
 
 	const handleDate = async (e) => {
-    const selectedDate = e.target.value;
-    setDate(selectedDate); // Обновляем состояние даты
-    try {
-        await simulateProgress();
-        const response = await axios.get(
-            `http://glavapu-services:3009/getCacheByDate/${selectedDate}`
-        );
-        setYesterdayMapsData(response.data);
-    } catch (error) {
-        console.log(error);
-        setYesterdayMapsData({});
-    }
-};
+		const selectedDate = e.target.value;
+		setDate(selectedDate); // Обновляем состояние даты
+		try {
+			await simulateProgress();
+			const response = await axios.get(
+				`http://glavapu-services:3009/getCacheByDate/${selectedDate}`
+			);
+			setYesterdayMapsData(response.data);
+		} catch (error) {
+			console.log(error);
+			setYesterdayMapsData({});
+		}
+	};
 
 	useEffect(() => {
 		const fetchAllData = async () => {
@@ -172,6 +172,44 @@ function App() {
 		// Создаем лист для данных
 		const ws = XLSX.utils.aoa_to_sheet([]);
 
+		// Создаем стили
+		const headerStyle = {
+			font: { bold: true, sz: 14 },
+			fill: { fgColor: { rgb: 'FADC80' } },
+			border: {
+				top: { style: 'thin' },
+				bottom: { style: 'thin' },
+				left: { style: 'thin' },
+				right: { style: 'thin' },
+			},
+		};
+
+		const downloadStyle = {
+			font: { bold: true, sz: 14 },
+			fill: { fgColor: { rgb: '8CB181' } },
+		};
+
+		const linkStyle = {
+			font: { color: { rgb: '0000FF' }, underline: true },
+			border: {
+				left: { style: 'thin' },
+			},
+		};
+
+		const cellStyle = {
+			border: {
+				top: { style: 'thin' },
+				bottom: { style: 'thin' },
+				left: { style: 'thin' },
+				right: { style: 'thin' },
+			},
+		};
+
+		const titleStyle = {
+			font: { bold: true, sz: 16 },
+			fill: { fgColor: { rgb: 'D3D3D3' } },
+		};
+
 		// Перебираем все сервисы и слои, чтобы добавить их в таблицу
 		const sheetData = Object.keys(filteredMapsData).reduce(
 			(acc, mapKey, index, arr) => {
@@ -192,17 +230,27 @@ function App() {
 				const serviceName = getServiceName(mapKey, serviceNames);
 
 				// Добавляем название сервиса как заголовок
-				acc.push([serviceName, '', '', '']);
+				acc.push([
+					{ v: serviceName, s: titleStyle }, // Применяем titleStyle к названию сервиса
+					{ v: '', s: '' },
+					{ v: '', s: '' },
+					{ v: '', s: '' },
+					{ v: '', s: '' },
+				]);
+
+				// Объединяем ячейки для заголовка сервиса
 				ws['!merges'] = [
-					{ s: { c: 0, r: 0 }, e: { c: 3, r: 0 } }, // A1:D1
+					...(ws['!merges'] || []),
+					{ s: { c: 0, r: acc.length - 1 }, e: { c: 4, r: acc.length - 1 } }, // A{n}:E{n} (вставляем название сервиса в строке {n})
 				];
 
 				// Добавляем заголовки таблицы для слоев
 				acc.push([
-					'Название слоя',
-					'Название кода',
-					'Вчерашняя дата',
-					'Актуальная дата',
+					{ v: 'Название слоя', s: headerStyle },
+					{ v: 'Название кода', s: headerStyle },
+					{ v: 'Вчерашняя дата', s: headerStyle },
+					{ v: 'Актуальная дата', s: headerStyle },
+					{ v: 'Скачать geojson', s: downloadStyle },
 				]);
 
 				// Добавляем данные для каждого слоя с расхождением в датах
@@ -211,11 +259,21 @@ function App() {
 						(yesterdayLayer) => yesterdayLayer.code === layer.code
 					);
 
+					// Формируем URL для ссылки
+					const geojsonUrl = `http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
+
 					acc.push([
-						layer.name || 'Без названия', // Название слоя
-						layer.code, // Код слоя
-						convertTimestampToDate(yesterdayLayer?.timestamp, layer.type), // Вчерашняя дата
-						convertTimestampToDate(layer.timestamp, layer.type), // Актуальная дата
+						{ v: layer.name || 'Без названия', s: cellStyle }, // Название слоя
+						{ v: layer.code, s: cellStyle }, // Код слоя
+						{
+							v: convertTimestampToDate(yesterdayLayer?.timestamp, layer.type),
+							s: cellStyle,
+						}, // Вчерашняя дата
+						{
+							v: convertTimestampToDate(layer.timestamp, layer.type),
+							s: cellStyle,
+						}, // Актуальная дата
+						{ f: `HYPERLINK("${geojsonUrl}", "Скачать")`, s: linkStyle }, // Формируем ссылку для скачивания
 					]);
 				});
 
@@ -232,12 +290,16 @@ function App() {
 		// Добавляем данные в лист
 		XLSX.utils.sheet_add_aoa(ws, sheetData);
 
+		const rowHeight = 20; // Устанавливаем высоту для каждой строки
+		ws['!rows'] = sheetData.map(() => ({ hpx: rowHeight }));
+
 		// Применение стилей к колонкам
 		const wsCols = [
-			{ wch: 80 }, // Ширина для колонки "Название слоя"
-			{ wch: 35 }, // Ширина для колонки "Название кода"
+			{ wch: 83 }, // Ширина для колонки "Название слоя"
+			{ wch: 37 }, // Ширина для колонки "Название кода"
 			{ wch: 25 }, // Ширина для колонки "Вчерашняя дата"
 			{ wch: 25 }, // Ширина для колонки "Актуальная дата"
+			{ wch: 20 }, // Ширина для колонки "Скачать geojson"
 		];
 		ws['!cols'] = wsCols;
 
@@ -286,7 +348,6 @@ function App() {
 						id="date-picker"
 						type="date"
 						value={date}
-						
 						min="2024-08-26"
 						max={today}
 						onChange={handleDate}
