@@ -173,36 +173,36 @@ function App() {
 		const ws = XLSX.utils.aoa_to_sheet([]);
 
 		// Создаем стили
-		const headerStyle = {
-			font: { bold: true, sz: 14 },
-			fill: { fgColor: { rgb: 'FADC80' } },
-			border: {
-				top: { style: 'thin' },
-				bottom: { style: 'thin' },
-				left: { style: 'thin' },
-				right: { style: 'thin' },
-			},
-		};
+		// const headerStyle = {
+		// 	font: { bold: true, sz: 14 },
+		// 	fill: { fgColor: { rgb: 'FADC80' } },
+		// 	border: {
+		// 		top: { style: 'thin' },
+		// 		bottom: { style: 'thin' },
+		// 		left: { style: 'thin' },
+		// 		right: { style: 'thin' },
+		// 	},
+		// };
 
-		const downloadStyle = {
-			font: { bold: true, sz: 14 },
-			fill: { fgColor: { rgb: '8CB181' } },
-		};
+		// const downloadStyle = {
+		// 	font: { bold: true, sz: 14 },
+		// 	fill: { fgColor: { rgb: '8CB181' } },
+		// };
 
 		const linkStyle = {
 			font: { color: { rgb: '0000FF' }, underline: true },
-			border: {
-				left: { style: 'thin' },
-			},
+			// border: {
+			// 	left: { style: 'thin' },
+			// },
 		};
 
 		const cellStyle = {
-			border: {
-				top: { style: 'thin' },
-				bottom: { style: 'thin' },
-				left: { style: 'thin' },
-				right: { style: 'thin' },
-			},
+			// border: {
+			// 	top: { style: 'thin' },
+			// 	bottom: { style: 'thin' },
+			// 	left: { style: 'thin' },
+			// 	right: { style: 'thin' },
+			// },
 		};
 
 		const titleStyle = {
@@ -239,19 +239,19 @@ function App() {
 				]);
 
 				// Объединяем ячейки для заголовка сервиса
-				ws['!merges'] = [
-					...(ws['!merges'] || []),
-					{ s: { c: 0, r: acc.length - 1 }, e: { c: 4, r: acc.length - 1 } }, // A{n}:E{n} (вставляем название сервиса в строке {n})
-				];
+				// ws['!merges'] = [
+				// 	...(ws['!merges'] || []),
+				// 	{ s: { c: 0, r: acc.length - 1 }, e: { c: 4, r: acc.length - 1 } }, // A{n}:E{n} (вставляем название сервиса в строке {n})
+				// ];
 
 				// Добавляем заголовки таблицы для слоев
-				acc.push([
-					{ v: 'Название слоя', s: headerStyle },
-					{ v: 'Название кода', s: headerStyle },
-					{ v: 'Вчерашняя дата', s: headerStyle },
-					{ v: 'Актуальная дата', s: headerStyle },
-					{ v: 'Скачать geojson', s: downloadStyle },
-				]);
+				// acc.push([
+				// 	{ v: 'Название слоя', s: headerStyle },
+				// 	{ v: 'Ссылка', s: headerStyle },
+				// 	{ v: 'Вчерашняя дата', s: headerStyle },
+				// 	{ v: 'Актуальная дата', s: headerStyle },
+				// 	{ v: 'Скачать geojson', s: downloadStyle },
+				// ]);
 
 				// Добавляем данные для каждого слоя с расхождением в датах
 				mismatchedLayers.forEach((layer) => {
@@ -264,7 +264,7 @@ function App() {
 
 					acc.push([
 						{ v: layer.name || 'Без названия', s: cellStyle }, // Название слоя
-						{ v: layer.code, s: cellStyle }, // Код слоя
+						{ v: geojsonUrl, s: cellStyle }, // Код слоя
 						{
 							v: convertTimestampToDate(yesterdayLayer?.timestamp, layer.type),
 							s: cellStyle,
@@ -296,7 +296,7 @@ function App() {
 		// Применение стилей к колонкам
 		const wsCols = [
 			{ wch: 83 }, // Ширина для колонки "Название слоя"
-			{ wch: 37 }, // Ширина для колонки "Название кода"
+			{ wch: 120 }, // Ширина для колонки "Название кода"
 			{ wch: 25 }, // Ширина для колонки "Вчерашняя дата"
 			{ wch: 25 }, // Ширина для колонки "Актуальная дата"
 			{ wch: 20 }, // Ширина для колонки "Скачать geojson"
