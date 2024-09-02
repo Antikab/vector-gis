@@ -335,6 +335,11 @@ function App() {
 				>
 					{isFiltered ? 'Показать все слои' : 'Показать измененные слои'}
 				</button>
+
+				{!isFiltered && (
+					<button className="sort-button ours">Измененные наши слои</button>
+				)}
+
 				{isFiltered && (
 					<button
 						className="sort-button download"
@@ -343,6 +348,7 @@ function App() {
 						Скачать Excel
 					</button>
 				)}
+
 				<div className="date-picker-wrapper">
 					<input
 						id="date-picker"

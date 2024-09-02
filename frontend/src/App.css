@@ -240,6 +240,18 @@ a:hover {
 	background: linear-gradient(145deg, #cce2ce, #eaffeb);
 }
 
+.ours {
+	background: linear-gradient(145deg, #fff9ea, #e2dccc);
+}
+
+.ours:hover {
+	color: #583808;
+}
+
+.ours:active {
+	background: linear-gradient(145deg, #e2dacc, #fff8ea);
+}
+
 .button,
 button {
 	display: flex;
