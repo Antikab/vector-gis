@@ -4,6 +4,7 @@ import './App.css';
 import * as XLSX from 'xlsx-js-style';
 // import { testData, testYesterdayData } from './components/testData';
 import serviceNames from './components/serviceNames';
+import serviceNamesOurs from './components/serviceNamesOurs';
 import {
 	extractServiceNumber,
 	getServiceName,
@@ -498,12 +499,12 @@ function App() {
 																>
 																	Скачать
 																</a>
-																{/* <a
+																<a
 																	// href={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
 																	className="button"
 																>
 																	Загрузить в БД
-																</a> */}
+																</a>
 															</div>
 														)}
 													</td>
