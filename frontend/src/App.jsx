@@ -5,6 +5,7 @@ import * as XLSX from 'xlsx-js-style';
 // import { testData, testYesterdayData } from './components/testData';
 import serviceNames from './components/serviceNames';
 import serviceNamesOurs from './components/serviceNamesOurs';
+import DownloadButton from './components/DownloadButton';
 import {
 	extractServiceNumber,
 	getServiceName,
@@ -21,7 +22,6 @@ function App() {
 	const [progress, setProgress] = useState(0);
 	const [filteredMapsData, setFilteredMapsData] = useState({});
 	const [isFiltered, setIsFiltered] = useState(false);
-	const [oursMapsData, setOursMapsData] = useState({});
 	const [loading, setLoading] = useState(true); // Объединено состояние загрузки
 
 	const today = new Date().toISOString().split('T')[0];
@@ -526,18 +526,25 @@ function App() {
 															''
 														) : (
 															<div className="link-wrapper">
-																<a
+																{/* <a
 																	href={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
 																	className="button"
 																>
 																	Скачать
-																</a>
-																<a
+																</a> */}
+																<DownloadButton
+																	url={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
+																	fileName={`${
+																		layer.name || 'download'
+																	}.geojson`}
+																/>
+
+																{/* <a
 																	// href={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
 																	className="button"
 																>
 																	Загрузить в БД
-																</a>
+																</a> */}
 															</div>
 														)}
 													</td>

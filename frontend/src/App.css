@@ -263,7 +263,6 @@ button {
 	background-color: #e8f1fd;
 	color: #4a78c7;
 	cursor: pointer;
-	font-weight: 500;
 	font-size: 14px;
 	transition: all 0.2s ease;
 	user-select: none;
@@ -278,6 +277,14 @@ button:hover {
 .button:active,
 button:active {
 	background-color: #5b83b8;
+}
+
+.button:disabled,
+button:disabled {
+	background-color: #ccc;
+	color: #666;
+	cursor: not-allowed;
+	box-shadow: none;
 }
 
 .sort-icon.asc::after {
