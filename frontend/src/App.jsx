@@ -526,12 +526,12 @@ function App() {
 															''
 														) : (
 															<div className="link-wrapper">
-																{/* <a
+																<a
 																	href={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
 																	className="button"
 																>
 																	Скачать
-																</a> */}
+																</a>
 																<DownloadButton
 																	url={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
 																	fileName={`${
