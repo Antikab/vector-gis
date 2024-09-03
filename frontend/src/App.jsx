@@ -21,6 +21,7 @@ function App() {
 	const [progress, setProgress] = useState(0);
 	const [filteredMapsData, setFilteredMapsData] = useState({});
 	const [isFiltered, setIsFiltered] = useState(false);
+	const [oursMapsData, setOursMapsData] = useState({});
 	const [loading, setLoading] = useState(true); // Объединено состояние загрузки
 
 	const today = new Date().toISOString().split('T')[0];
@@ -141,11 +142,38 @@ function App() {
 			if (hasMismatch) {
 				acc[mapKey] = mapsData[mapKey];
 			}
-
 			return acc;
 		}, {});
 
 		setFilteredMapsData(filteredData);
+		setIsFiltered(true);
+	};
+
+	const filterOursMapsData = () => {
+		const filteredOursData = Object.keys(mapsData).reduce((acc, mapKey) => {
+			const serviceNumber = extractServiceNumber(mapKey);
+
+			if (serviceNumber && serviceNamesOurs[serviceNumber]) {
+				const layers = mapsData[mapKey] || [];
+
+				// Проверяем наличие расхождений
+				const hasMismatch = layers.some((layer) => {
+					const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
+						(yesterdayLayer) => yesterdayLayer.code === layer.code
+					);
+					return checkForMismatch(layer, yesterdayLayer);
+				});
+
+				// Если есть расхождения, добавляем данные в итоговый объект
+				if (hasMismatch) {
+					acc[mapKey] = layers;
+				}
+			}
+
+			return acc;
+		}, {});
+
+		setFilteredMapsData(filteredOursData);
 		setIsFiltered(true);
 	};
 
@@ -338,7 +366,12 @@ function App() {
 				</button>
 
 				{!isFiltered && (
-					<button className="sort-button ours">Измененные наши слои</button>
+					<button
+						className="sort-button ours"
+						onClick={filterOursMapsData}
+					>
+						Измененные наши слои
+					</button>
 				)}
 
 				{isFiltered && (
