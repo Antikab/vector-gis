@@ -13,6 +13,8 @@ import {
 	checkForMismatch,
 	convertTimestampToDate,
 } from './components/utils';
+import links from './components/links';
+
 
 function App() {
 	const [mapsData, setMapsData] = useState({});
@@ -95,6 +97,7 @@ function App() {
 		fetchAllData();
 	}, []);
 
+	
 	const handleSort = (mapKey, sortBy) => {
 		const currentOrder = sortOrders[mapKey] || 'asc';
 		const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
@@ -151,9 +154,11 @@ function App() {
 
 	const filterOursMapsData = () => {
 		const filteredOursData = Object.keys(mapsData).reduce((acc, mapKey) => {
-			const serviceNumber = extractServiceNumber(mapKey);
+			const serviceName = getServiceName(mapKey, serviceNames);
+			const serviceNameOurs = getServiceName(mapKey, serviceNamesOurs);
 
-			if (serviceNumber && serviceNamesOurs[serviceNumber]) {
+
+			if (serviceNameOurs == serviceName) {
 				const layers = mapsData[mapKey] || [];
 
 				// Проверяем наличие расхождений
@@ -176,6 +181,63 @@ function App() {
 		setFilteredMapsData(filteredOursData);
 		setIsFiltered(true);
 	};
+	
+// 	const filterOursMapsData = () => {
+//     console.log("Начинаем фильтрацию данных карт...");
+
+//     const filteredOursData = Object.keys(mapsData).reduce((acc, mapKey) => {
+//         console.log(`\nОбрабатываем карту с ключом: ${mapKey}`);
+
+//         const serviceNumber = extractServiceNumber(mapKey);
+//         console.log(`Извлеченный номер сервиса: ${serviceNumber}`);
+
+//         if (serviceNumber && serviceNamesOurs[serviceNumber]) {
+//             console.log(`Найдено соответствие в serviceNamesOurs для номера сервиса: ${serviceNumber}`);
+
+//             const layers = mapsData[mapKey] || [];
+//             console.log(`Количество слоев для карты ${mapKey}: ${layers.length}`);
+
+//             // Проверяем наличие расхождений
+//             const hasMismatch = layers.some((layer) => {
+//                 console.log(`\tПроверяем слой с кодом: ${layer.code}`);
+
+//                 const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
+//                     (yesterdayLayer) => yesterdayLayer.code === layer.code
+//                 );
+                
+//                 if (yesterdayLayer) {
+//                     console.log(`\tНайден соответствующий слой за вчерашний день с кодом: ${yesterdayLayer.code}`);
+//                 } else {
+//                     console.log(`\tСлой за вчерашний день с кодом ${layer.code} не найден`);
+//                 }
+
+//                 const mismatch = checkForMismatch(layer, yesterdayLayer);
+//                 console.log(`\tРезультат проверки на расхождения: ${mismatch}`);
+
+//                 return mismatch;
+//             });
+
+//             // Если есть расхождения, добавляем данные в итоговый объект
+//             if (hasMismatch) {
+//                 console.log(`\tДобавляем карту ${mapKey} в итоговый объект, так как найдены расхождения`);
+//                 acc[mapKey] = layers;
+//             } else {
+//                 console.log(`\tРасхождений не найдено для карты ${mapKey}`);
+//             }
+//         } else {
+//             console.log(`Пропускаем карту ${mapKey}, так как не найдено соответствие в serviceNamesOurs`);
+//         }
+
+//         return acc;
+//     }, {});
+
+//     console.log("Фильтрация завершена. Результат:", filteredOursData);
+
+//     setFilteredMapsData(filteredOursData);
+//     setIsFiltered(true);
+//     console.log("Флаг фильтрации установлен в true");
+// };
+
 
 	if (loading) {
 		return (
@@ -526,12 +588,12 @@ function App() {
 															''
 														) : (
 															<div className="link-wrapper">
-																<a
+																{/* <a
 																	href={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
 																	className="button"
 																>
 																	Скачать
-																</a>
+																</a> */}
 																<DownloadButton
 																	url={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
 																	fileName={`${

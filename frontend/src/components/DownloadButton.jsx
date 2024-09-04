@@ -26,7 +26,7 @@ function DownloadButton({ url, fileName }) {
 			link.remove();
 			window.URL.revokeObjectURL(blobUrl);
 		} catch (error) {
-			console.error('Error downloading the file:', error);
+			console.error('Ошибка загрузки файла:', error);
 		} finally {
 			setIsDownloading(false);
 		}
