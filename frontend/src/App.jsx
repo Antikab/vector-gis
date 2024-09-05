@@ -507,7 +507,7 @@ function App() {
 										</tr>
 									</thead>
 
-									{(isFiltered ? filteredMapsData : mapsData)[mapKey].map(
+									{(mapsData)[mapKey].map(
 										(layer) => {
 											const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
 												(yesterdayLayer) => yesterdayLayer.code === layer.code
