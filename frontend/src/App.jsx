@@ -180,11 +180,11 @@ function App() {
 		const filteredOursData = Object.keys(mapsData).reduce((acc, mapKey) => {
 			const serviceName = getServiceName(mapKey, serviceNames);
 			const serviceNameOurs = getServiceName(mapKey, serviceNamesOurs);
-			const oursServiceName = serviceNameOurs === serviceName;
+			const isOursService = serviceNameOurs.includes(serviceName);
 
-			if (oursServiceName) {
-				const layers = mapsData[mapKey] || [];
+			if (isOursService) {
 				// Фильтруем слои по ссылкам
+				const layers = mapsData[mapKey] || [];
 				const layersInLinks = filterLayersByLinks(layers, links, mapKey);
 				// Проверяем на расхождения
 				const matchingLayers = layersInLinks.filter((layer) => {
