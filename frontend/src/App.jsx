@@ -169,45 +169,43 @@ function App() {
 		setIsFiltered(true);
 	};
 
-const filterLayersByLinks = (layers, links, mapKey) => {
-  return layers.filter(layer => {
-    const geojsonUrl = `http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
-    return links.includes(geojsonUrl);
-  });
-};
+	const filterLayersByLinks = (layers, links, mapKey) => {
+		return layers.filter((layer) => {
+			const geojsonUrl = `http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
+			return links.includes(geojsonUrl);
+		});
+	};
 
-const filterOursMapsData = () => {
-  const filteredOursData = Object.keys(mapsData).reduce((acc, mapKey) => {
-    const serviceName = getServiceName(mapKey, serviceNames);
-    const serviceNameOurs = getServiceName(mapKey, serviceNamesOurs);
-    const oursServiceName = serviceNameOurs === serviceName;
+	const filterOursMapsData = () => {
+		const filteredOursData = Object.keys(mapsData).reduce((acc, mapKey) => {
+			const serviceName = getServiceName(mapKey, serviceNames);
+			const serviceNameOurs = getServiceName(mapKey, serviceNamesOurs);
+			const oursServiceName = serviceNameOurs === serviceName;
 
-    if (oursServiceName) {
-      const layers = mapsData[mapKey] || [];
-      // Фильтруем слои по ссылкам
-      const layersInLinks = filterLayersByLinks(layers, links, mapKey);
-      // Проверяем на расхождения
-      const matchingLayers = layersInLinks.filter(layer => {
-        const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
-          yesterdayLayer => yesterdayLayer.code === layer.code
-        );
+			if (oursServiceName) {
+				const layers = mapsData[mapKey] || [];
+				// Фильтруем слои по ссылкам
+				const layersInLinks = filterLayersByLinks(layers, links, mapKey);
+				// Проверяем на расхождения
+				const matchingLayers = layersInLinks.filter((layer) => {
+					const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
+						(yesterdayLayer) => yesterdayLayer.code === layer.code
+					);
 
-        return checkForMismatch(layer, yesterdayLayer);
-      });
+					return checkForMismatch(layer, yesterdayLayer);
+				});
 
-      if (matchingLayers.length > 0) {
-        acc[mapKey] = matchingLayers;
-      }
-    }
+				if (matchingLayers.length > 0) {
+					acc[mapKey] = matchingLayers;
+				}
+			}
 
-    return acc;
-  }, {});
+			return acc;
+		}, {});
 
-	console.log('filterOursMapsData', filteredOursData)
-  setFilteredMapsData(filteredOursData);
-  setIsFiltered(true);
-};
-
+		setFilteredMapsData(filteredOursData);
+		setIsFiltered(true);
+	};
 
 	function exportToExcel() {
 		// Создаем новый Workbook
@@ -385,7 +383,7 @@ const filterOursMapsData = () => {
 					ВекторГИС{' '}
 				</a>{' '}
 			</h1>
-	
+
 			<div className="wrapper-button">
 				<button
 					className="sort-button"
@@ -393,7 +391,7 @@ const filterOursMapsData = () => {
 				>
 					{isFiltered ? 'Показать все слои' : 'Показать измененные слои'}
 				</button>
-	
+
 				{!isFiltered && (
 					<button
 						className="sort-button ours"
@@ -402,7 +400,7 @@ const filterOursMapsData = () => {
 						Измененные наши слои
 					</button>
 				)}
-	
+
 				{isFiltered && (
 					<button
 						className="sort-button download"
@@ -411,7 +409,7 @@ const filterOursMapsData = () => {
 						Скачать Excel
 					</button>
 				)}
-	
+
 				<div className="date-picker-wrapper">
 					<input
 						id="date-picker"
@@ -426,7 +424,7 @@ const filterOursMapsData = () => {
 						className="calendar-icon"
 					></div>
 				</div>
-	
+
 				{progress > 0 && progress < 100 && (
 					<div className="loading-indicator">
 						<progress
@@ -437,7 +435,7 @@ const filterOursMapsData = () => {
 					</div>
 				)}
 			</div>
-	
+
 			{Object.keys(isFiltered ? filteredMapsData : mapsData).length === 0 ? (
 				<p>Нет доступных слоев.</p>
 			) : (
@@ -451,11 +449,11 @@ const filterOursMapsData = () => {
 						);
 						return checkForMismatch(layer, yesterdayLayer);
 					});
-	
+
 					const hasValidTimestamp = (isFiltered ? filteredMapsData : mapsData)[
 						mapKey
 					].some((layer) => layer.timestamp);
-	
+
 					return (
 						<details
 							key={mapKey}
@@ -490,7 +488,7 @@ const filterOursMapsData = () => {
 																className={`sort-icon ${sortOrders[mapKey]}`}
 																onClick={() => handleSort(mapKey, 'yesterday')}
 															></button>
-													)}
+														)}
 												</div>
 											</th>
 											<th>
@@ -502,77 +500,81 @@ const filterOursMapsData = () => {
 																className={`sort-icon ${sortOrders[mapKey]}`}
 																onClick={() => handleSort(mapKey, 'today')}
 															></button>
-													)}
+														)}
 												</div>
 											</th>
 											<th>Скачать geojson</th>
 										</tr>
 									</thead>
-	
-									{(isFiltered ? filteredMapsData : mapsData)[mapKey].map((layer) => {
-										const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
-											(yesterdayLayer) => yesterdayLayer.code === layer.code
-										);
-										const downloadUrl = `http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
-	
-										return (
-											<tbody key={layer.id || `${mapKey}-${layer.code}`}>
-												<tr
-													className={
-														checkForMismatch(layer, yesterdayLayer)
-															? 'highlight-row'
-															: ''
-													}
-												>
-													<td>{layer.name || 'Без названия'}</td>
-													<td
-														className={layer.type === 'folder' ? 'folder' : ''}
-													>
-														{layer.code}
-													</td>
-													<td
+
+									{(isFiltered ? filteredMapsData : mapsData)[mapKey].map(
+										(layer) => {
+											const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
+												(yesterdayLayer) => yesterdayLayer.code === layer.code
+											);
+											const downloadUrl = `http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
+
+											return (
+												<tbody key={layer.id || `${mapKey}-${layer.code}`}>
+													<tr
 														className={
-															!yesterdayLayer?.timestamp &&
-															layer.type !== 'folder'
-																? 'time-null'
+															checkForMismatch(layer, yesterdayLayer)
+																? 'highlight-row'
 																: ''
 														}
 													>
-														{convertTimestampToDate(
-															yesterdayLayer?.timestamp,
-															layer.type
-														)}
-													</td>
-													<td
-														className={
-															!layer?.timestamp && layer.type !== 'folder'
-																? 'time-null'
-																: ''
-														}
-													>
-														{convertTimestampToDate(
-															layer.timestamp,
-															layer.type
-														)}
-													</td>
-													<td>
-														{layer.type === 'folder' ? (
-															''
-														) : (
-															<div className="link-wrapper">
-																<DownloadButton
-																	url={downloadUrl}
-																	fileName={`${
-																		layer.name || 'download'
-																	}.geojson`}
-																/>
-															</div>
-														)}
-													</td>
-												</tr>
-											</tbody>
-										);
-									})}
+														<td>{layer.name || 'Без названия'}</td>
+														<td
+															className={
+																layer.type === 'folder' ? 'folder' : ''
+															}
+														>
+															{layer.code}
+														</td>
+														<td
+															className={
+																!yesterdayLayer?.timestamp &&
+																layer.type !== 'folder'
+																	? 'time-null'
+																	: ''
+															}
+														>
+															{convertTimestampToDate(
+																yesterdayLayer?.timestamp,
+																layer.type
+															)}
+														</td>
+														<td
+															className={
+																!layer?.timestamp && layer.type !== 'folder'
+																	? 'time-null'
+																	: ''
+															}
+														>
+															{convertTimestampToDate(
+																layer.timestamp,
+																layer.type
+															)}
+														</td>
+														<td>
+															{layer.type === 'folder' ? (
+																''
+															) : (
+																<div className="link-wrapper">
+																	<DownloadButton
+																		url={downloadUrl}
+																		fileName={`${
+																			layer.name || 'download'
+																		}.geojson`}
+																	/>
+																</div>
+															)}
+														</td>
+													</tr>
+												</tbody>
+											);
+										}
+									)}
 								</table>
 							</div>
 						</details>
@@ -581,7 +583,6 @@ const filterOursMapsData = () => {
 			)}
 		</div>
 	);
-	
 }
 
 export default App;
