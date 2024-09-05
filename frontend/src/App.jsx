@@ -15,9 +15,9 @@ import {
 } from './components/utils';
 import links from './components/links';
 
-
 function App() {
 	const [mapsData, setMapsData] = useState({});
+	const [originalMapsData, setOriginalMapsData] = useState({});
 	const [yesterdayMapsData, setYesterdayMapsData] = useState({});
 	const [sortOrders, setSortOrders] = useState({});
 	const [error, setError] = useState(null);
@@ -56,7 +56,10 @@ function App() {
 				acc[key] = response.data[key];
 				return acc;
 			}, {});
-			setMapsData(sortedData);
+
+			// Сохраняем исходные данные в новое состояние
+			setOriginalMapsData(sortedData);
+			setMapsData(sortedData); // также обновляем текущее состояние
 		} catch (error) {
 			setError('Ошибка загрузки данных');
 		}
@@ -97,30 +100,43 @@ function App() {
 		fetchAllData();
 	}, []);
 
-	
 	const handleSort = (mapKey, sortBy) => {
-		const currentOrder = sortOrders[mapKey] || 'asc';
-		const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+		const currentOrder = sortOrders[mapKey] || 'none'; // Добавляем состояние "none" для сброса
+		let newOrder;
 
-		const sortedLayers = [...mapsData[mapKey]].sort((a, b) => {
-			const aTimestamp =
-				sortBy === 'today'
-					? a.timestamp
-					: yesterdayMapsData[mapKey]?.find((layer) => layer.code === a.code)
-							?.timestamp;
-			const bTimestamp =
-				sortBy === 'today'
-					? b.timestamp
-					: yesterdayMapsData[mapKey]?.find((layer) => layer.code === b.code)
-							?.timestamp;
+		if (currentOrder === 'none') {
+			newOrder = 'asc'; // Сортировка по возрастанию
+		} else if (currentOrder === 'asc') {
+			newOrder = 'desc'; // Сортировка по убыванию
+		} else {
+			newOrder = 'none'; // Сброс к исходному порядку
+		}
 
-			if (!aTimestamp) return 1;
+		let sortedLayers;
 
-			if (!bTimestamp) return -1;
-			return newOrder === 'asc'
-				? aTimestamp - bTimestamp
-				: bTimestamp - aTimestamp;
-		});
+		if (newOrder === 'asc' || newOrder === 'desc') {
+			sortedLayers = [...mapsData[mapKey]].sort((a, b) => {
+				const aTimestamp =
+					sortBy === 'today'
+						? a.timestamp
+						: yesterdayMapsData[mapKey]?.find((layer) => layer.code === a.code)
+								?.timestamp;
+				const bTimestamp =
+					sortBy === 'today'
+						? b.timestamp
+						: yesterdayMapsData[mapKey]?.find((layer) => layer.code === b.code)
+								?.timestamp;
+
+				if (!aTimestamp) return 1;
+				if (!bTimestamp) return -1;
+				return newOrder === 'asc'
+					? aTimestamp - bTimestamp
+					: bTimestamp - aTimestamp;
+			});
+		} else {
+			// Если состояние сброса, возвращаем исходный порядок
+			sortedLayers = [...originalMapsData[mapKey]];
+		}
 
 		setSortOrders((prevSortOrders) => ({
 			...prevSortOrders,
@@ -133,12 +149,13 @@ function App() {
 		}));
 	};
 
-	const filterChangedLayers = () => {
+	const filterMapsData = () => {
 		const filteredData = Object.keys(mapsData).reduce((acc, mapKey) => {
 			const hasMismatch = mapsData[mapKey].some((layer) => {
 				const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
 					(yesterdayLayer) => yesterdayLayer.code === layer.code
 				);
+
 				return checkForMismatch(layer, yesterdayLayer);
 			});
 
@@ -152,109 +169,45 @@ function App() {
 		setIsFiltered(true);
 	};
 
-	const filterOursMapsData = () => {
-		const filteredOursData = Object.keys(mapsData).reduce((acc, mapKey) => {
-			const serviceName = getServiceName(mapKey, serviceNames);
-			const serviceNameOurs = getServiceName(mapKey, serviceNamesOurs);
+const filterLayersByLinks = (layers, links, mapKey) => {
+  return layers.filter(layer => {
+    const geojsonUrl = `http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
+    return links.includes(geojsonUrl);
+  });
+};
 
+const filterOursMapsData = () => {
+  const filteredOursData = Object.keys(mapsData).reduce((acc, mapKey) => {
+    const serviceName = getServiceName(mapKey, serviceNames);
+    const serviceNameOurs = getServiceName(mapKey, serviceNamesOurs);
+    const oursServiceName = serviceNameOurs === serviceName;
 
-			if (serviceNameOurs == serviceName) {
-				const layers = mapsData[mapKey] || [];
+    if (oursServiceName) {
+      const layers = mapsData[mapKey] || [];
+      // Фильтруем слои по ссылкам
+      const layersInLinks = filterLayersByLinks(layers, links, mapKey);
+      // Проверяем на расхождения
+      const matchingLayers = layersInLinks.filter(layer => {
+        const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
+          yesterdayLayer => yesterdayLayer.code === layer.code
+        );
 
-				// Проверяем наличие расхождений
-				const hasMismatch = layers.some((layer) => {
-					const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
-						(yesterdayLayer) => yesterdayLayer.code === layer.code
-					);
-					return checkForMismatch(layer, yesterdayLayer);
-				});
+        return checkForMismatch(layer, yesterdayLayer);
+      });
 
-				// Если есть расхождения, добавляем данные в итоговый объект
-				if (hasMismatch) {
-					acc[mapKey] = layers;
-				}
-			}
+      if (matchingLayers.length > 0) {
+        acc[mapKey] = matchingLayers;
+      }
+    }
 
-			return acc;
-		}, {});
+    return acc;
+  }, {});
 
-		setFilteredMapsData(filteredOursData);
-		setIsFiltered(true);
-	};
-	
-// 	const filterOursMapsData = () => {
-//     console.log("Начинаем фильтрацию данных карт...");
+	console.log('filterOursMapsData', filteredOursData)
+  setFilteredMapsData(filteredOursData);
+  setIsFiltered(true);
+};
 
-//     const filteredOursData = Object.keys(mapsData).reduce((acc, mapKey) => {
-//         console.log(`\nОбрабатываем карту с ключом: ${mapKey}`);
-
-//         const serviceNumber = extractServiceNumber(mapKey);
-//         console.log(`Извлеченный номер сервиса: ${serviceNumber}`);
-
-//         if (serviceNumber && serviceNamesOurs[serviceNumber]) {
-//             console.log(`Найдено соответствие в serviceNamesOurs для номера сервиса: ${serviceNumber}`);
-
-//             const layers = mapsData[mapKey] || [];
-//             console.log(`Количество слоев для карты ${mapKey}: ${layers.length}`);
-
-//             // Проверяем наличие расхождений
-//             const hasMismatch = layers.some((layer) => {
-//                 console.log(`\tПроверяем слой с кодом: ${layer.code}`);
-
-//                 const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
-//                     (yesterdayLayer) => yesterdayLayer.code === layer.code
-//                 );
-                
-//                 if (yesterdayLayer) {
-//                     console.log(`\tНайден соответствующий слой за вчерашний день с кодом: ${yesterdayLayer.code}`);
-//                 } else {
-//                     console.log(`\tСлой за вчерашний день с кодом ${layer.code} не найден`);
-//                 }
-
-//                 const mismatch = checkForMismatch(layer, yesterdayLayer);
-//                 console.log(`\tРезультат проверки на расхождения: ${mismatch}`);
-
-//                 return mismatch;
-//             });
-
-//             // Если есть расхождения, добавляем данные в итоговый объект
-//             if (hasMismatch) {
-//                 console.log(`\tДобавляем карту ${mapKey} в итоговый объект, так как найдены расхождения`);
-//                 acc[mapKey] = layers;
-//             } else {
-//                 console.log(`\tРасхождений не найдено для карты ${mapKey}`);
-//             }
-//         } else {
-//             console.log(`Пропускаем карту ${mapKey}, так как не найдено соответствие в serviceNamesOurs`);
-//         }
-
-//         return acc;
-//     }, {});
-
-//     console.log("Фильтрация завершена. Результат:", filteredOursData);
-
-//     setFilteredMapsData(filteredOursData);
-//     setIsFiltered(true);
-//     console.log("Флаг фильтрации установлен в true");
-// };
-
-
-	if (loading) {
-		return (
-			<div className="loading-wrapper">
-				<div className="loading-container">
-					<progress
-						value={progress}
-						max="100"
-					/>
-					<span>{progress}%</span>
-					<p>Загрузка слоев...</p>
-				</div>
-			</div>
-		);
-	}
-
-	if (error) return <p>Error: {error}</p>;
 
 	function exportToExcel() {
 		// Создаем новый Workbook
@@ -401,6 +354,22 @@ function App() {
 		XLSX.writeFile(wb, 'filtered_services.xlsx');
 	}
 
+	if (loading) {
+		return (
+			<div className="loading-wrapper">
+				<div className="loading-container">
+					<progress
+						value={progress}
+						max="100"
+					/>
+					<span>{progress}%</span>
+					<p>Загрузка слоев...</p>
+				</div>
+			</div>
+		);
+	}
+
+	if (error) return <p>Error: {error}</p>;
 	// ----------------------------------------------------------------------------
 	// ----------------------------------------------------------------------------
 	return (
@@ -416,17 +385,15 @@ function App() {
 					ВекторГИС{' '}
 				</a>{' '}
 			</h1>
-
+	
 			<div className="wrapper-button">
 				<button
 					className="sort-button"
-					onClick={
-						isFiltered ? () => setIsFiltered(false) : filterChangedLayers
-					}
+					onClick={isFiltered ? () => setIsFiltered(false) : filterMapsData}
 				>
 					{isFiltered ? 'Показать все слои' : 'Показать измененные слои'}
 				</button>
-
+	
 				{!isFiltered && (
 					<button
 						className="sort-button ours"
@@ -435,7 +402,7 @@ function App() {
 						Измененные наши слои
 					</button>
 				)}
-
+	
 				{isFiltered && (
 					<button
 						className="sort-button download"
@@ -444,7 +411,7 @@ function App() {
 						Скачать Excel
 					</button>
 				)}
-
+	
 				<div className="date-picker-wrapper">
 					<input
 						id="date-picker"
@@ -459,7 +426,7 @@ function App() {
 						className="calendar-icon"
 					></div>
 				</div>
-
+	
 				{progress > 0 && progress < 100 && (
 					<div className="loading-indicator">
 						<progress
@@ -470,21 +437,25 @@ function App() {
 					</div>
 				)}
 			</div>
+	
 			{Object.keys(isFiltered ? filteredMapsData : mapsData).length === 0 ? (
 				<p>Нет доступных слоев.</p>
 			) : (
 				Object.keys(isFiltered ? filteredMapsData : mapsData).map((mapKey) => {
 					const serviceName = getServiceName(mapKey, serviceNames);
-					const hasMismatch = mapsData[mapKey].some((layer) => {
+					const hasMismatch = (isFiltered ? filteredMapsData : mapsData)[
+						mapKey
+					].some((layer) => {
 						const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
 							(yesterdayLayer) => yesterdayLayer.code === layer.code
 						);
 						return checkForMismatch(layer, yesterdayLayer);
 					});
-
-					const hasValidTimestamp = mapsData[mapKey].some(
-						(layer) => layer.timestamp
-					);
+	
+					const hasValidTimestamp = (isFiltered ? filteredMapsData : mapsData)[
+						mapKey
+					].some((layer) => layer.timestamp);
+	
 					return (
 						<details
 							key={mapKey}
@@ -519,7 +490,7 @@ function App() {
 																className={`sort-icon ${sortOrders[mapKey]}`}
 																onClick={() => handleSort(mapKey, 'yesterday')}
 															></button>
-														)}
+													)}
 												</div>
 											</th>
 											<th>
@@ -531,18 +502,19 @@ function App() {
 																className={`sort-icon ${sortOrders[mapKey]}`}
 																onClick={() => handleSort(mapKey, 'today')}
 															></button>
-														)}
+													)}
 												</div>
 											</th>
 											<th>Скачать geojson</th>
 										</tr>
 									</thead>
-
-									{mapsData[mapKey].map((layer) => {
+	
+									{(isFiltered ? filteredMapsData : mapsData)[mapKey].map((layer) => {
 										const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
 											(yesterdayLayer) => yesterdayLayer.code === layer.code
 										);
-
+										const downloadUrl = `http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
+	
 										return (
 											<tbody key={layer.id || `${mapKey}-${layer.code}`}>
 												<tr
@@ -588,25 +560,12 @@ function App() {
 															''
 														) : (
 															<div className="link-wrapper">
-																{/* <a
-																	href={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
-																	className="button"
-																>
-																	Скачать
-																</a> */}
 																<DownloadButton
-																	url={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
+																	url={downloadUrl}
 																	fileName={`${
 																		layer.name || 'download'
 																	}.geojson`}
 																/>
-
-																{/* <a
-																	// href={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
-																	className="button"
-																>
-																	Загрузить в БД
-																</a> */}
 															</div>
 														)}
 													</td>
@@ -622,6 +581,7 @@ function App() {
 			)}
 		</div>
 	);
+	
 }
 
 export default App;
