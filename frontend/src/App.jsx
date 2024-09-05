@@ -507,74 +507,70 @@ function App() {
 										</tr>
 									</thead>
 
-									{(mapsData)[mapKey].map(
-										(layer) => {
-											const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
-												(yesterdayLayer) => yesterdayLayer.code === layer.code
-											);
-											const downloadUrl = `http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
+									{mapsData[mapKey].map((layer) => {
+										const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
+											(yesterdayLayer) => yesterdayLayer.code === layer.code
+										);
+										const downloadUrl = `http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
 
-											return (
-												<tbody key={layer.id || `${mapKey}-${layer.code}`}>
-													<tr
+										return (
+											<tbody key={layer.id || `${mapKey}-${layer.code}`}>
+												<tr
+													className={
+														checkForMismatch(layer, yesterdayLayer)
+															? 'highlight-row'
+															: ''
+													}
+												>
+													<td>{layer.name || 'Без названия'}</td>
+													<td
+														className={layer.type === 'folder' ? 'folder' : ''}
+													>
+														{layer.code}
+													</td>
+													<td
 														className={
-															checkForMismatch(layer, yesterdayLayer)
-																? 'highlight-row'
+															!yesterdayLayer?.timestamp &&
+															layer.type !== 'folder'
+																? 'time-null'
 																: ''
 														}
 													>
-														<td>{layer.name || 'Без названия'}</td>
-														<td
-															className={
-																layer.type === 'folder' ? 'folder' : ''
-															}
-														>
-															{layer.code}
-														</td>
-														<td
-															className={
-																!yesterdayLayer?.timestamp &&
-																layer.type !== 'folder'
-																	? 'time-null'
-																	: ''
-															}
-														>
-															{convertTimestampToDate(
-																yesterdayLayer?.timestamp,
-																layer.type
-															)}
-														</td>
-														<td
-															className={
-																!layer?.timestamp && layer.type !== 'folder'
-																	? 'time-null'
-																	: ''
-															}
-														>
-															{convertTimestampToDate(
-																layer.timestamp,
-																layer.type
-															)}
-														</td>
-														<td>
-															{layer.type === 'folder' ? (
-																''
-															) : (
-																<div className="link-wrapper">
-																	<DownloadButton
-																		url={downloadUrl}
-																		fileName={`${
-																			layer.name || 'download'
-																		}.geojson`}
-																	/>
-																</div>
-															)}
-														</td>
-													</tr>
-												</tbody>
-											);
-										}
-									)}
+														{convertTimestampToDate(
+															yesterdayLayer?.timestamp,
+															layer.type
+														)}
+													</td>
+													<td
+														className={
+															!layer?.timestamp && layer.type !== 'folder'
+																? 'time-null'
+																: ''
+														}
+													>
+														{convertTimestampToDate(
+															layer.timestamp,
+															layer.type
+														)}
+													</td>
+													<td>
+														{layer.type === 'folder' ? (
+															''
+														) : (
+															<div className="link-wrapper">
+																<DownloadButton
+																	url={downloadUrl}
+																	fileName={`${
+																		layer.name || 'download'
+																	}.geojson`}
+																/>
+															</div>
+														)}
+													</td>
+												</tr>
+											</tbody>
+										);
+									})}
 								</table>
 							</div>
 						</details>
