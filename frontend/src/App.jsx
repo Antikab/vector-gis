@@ -9,9 +9,9 @@ import DownloadButton from './components/DownloadButton';
 import {
 	extractServiceNumber,
 	getServiceName,
-	sortKeys,
 	checkForMismatch,
 	convertTimestampToDate,
+	sortKeys,
 } from './components/utils';
 import links from './components/links';
 
@@ -101,52 +101,50 @@ function App() {
 	}, []);
 
 	const handleSort = (mapKey, sortBy) => {
-		const currentOrder = sortOrders[mapKey] || 'none'; // Добавляем состояние "none" для сброса
-		let newOrder;
+		// Определяем следующий порядок сортировки
+		const nextOrder =
+			sortOrders[mapKey] === 'asc'
+				? 'desc'
+				: sortOrders[mapKey] === 'desc'
+				? 'none'
+				: 'asc';
 
-		if (currentOrder === 'none') {
-			newOrder = 'asc'; // Сортировка по возрастанию
-		} else if (currentOrder === 'asc') {
-			newOrder = 'desc'; // Сортировка по убыванию
-		} else {
-			newOrder = 'none'; // Сброс к исходному порядку
-		}
+		// Определяем, по какому значению сортировать (сегодня или вчера)
+		const getTimestamp = (layer) => {
+			if (sortBy === 'today') return layer.timestamp;
+			const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
+				(l) => l.code === layer.code
+			);
+			return yesterdayLayer?.timestamp;
+		};
 
-		let sortedLayers;
+		// Используем фильтрованные данные, если фильтр активен, иначе оригинальные
+		let layersToSort = isFiltered
+			? [...filteredMapsData[mapKey]]
+			: [...originalMapsData[mapKey]];
 
-		if (newOrder === 'asc' || newOrder === 'desc') {
-			sortedLayers = [...mapsData[mapKey]].sort((a, b) => {
-				const aTimestamp =
-					sortBy === 'today'
-						? a.timestamp
-						: yesterdayMapsData[mapKey]?.find((layer) => layer.code === a.code)
-								?.timestamp;
-				const bTimestamp =
-					sortBy === 'today'
-						? b.timestamp
-						: yesterdayMapsData[mapKey]?.find((layer) => layer.code === b.code)
-								?.timestamp;
-
+		if (nextOrder !== 'none') {
+			// Если сортировка не сброшена, сортируем
+			layersToSort.sort((a, b) => {
+				const aTimestamp = getTimestamp(a);
+				const bTimestamp = getTimestamp(b);
 				if (!aTimestamp) return 1;
 				if (!bTimestamp) return -1;
-				return newOrder === 'asc'
+				return nextOrder === 'asc'
 					? aTimestamp - bTimestamp
 					: bTimestamp - aTimestamp;
 			});
-		} else {
-			// Если состояние сброса, возвращаем исходный порядок
-			sortedLayers = [...originalMapsData[mapKey]];
 		}
 
-		setSortOrders((prevSortOrders) => ({
-			...prevSortOrders,
-			[mapKey]: newOrder,
-		}));
+		// Обновляем состояние сортировки
+		setSortOrders((prev) => ({ ...prev, [mapKey]: nextOrder }));
 
-		setMapsData((prevMapsData) => ({
-			...prevMapsData,
-			[mapKey]: sortedLayers,
-		}));
+		// Обновляем данные после сортировки для правильного состояния
+		if (isFiltered) {
+			setFilteredMapsData((prev) => ({ ...prev, [mapKey]: layersToSort }));
+		} else {
+			setMapsData((prev) => ({ ...prev, [mapKey]: layersToSort }));
+		}
 	};
 
 	const filterMapsData = () => {
@@ -166,6 +164,7 @@ function App() {
 		}, {});
 
 		setFilteredMapsData(filteredData);
+
 		setIsFiltered(true);
 	};
 
@@ -214,37 +213,8 @@ function App() {
 		// Создаем лист для данных
 		const ws = XLSX.utils.aoa_to_sheet([]);
 
-		// Создаем стили
-		// const headerStyle = {
-		// 	font: { bold: true, sz: 14 },
-		// 	fill: { fgColor: { rgb: 'FADC80' } },
-		// 	border: {
-		// 		top: { style: 'thin' },
-		// 		bottom: { style: 'thin' },
-		// 		left: { style: 'thin' },
-		// 		right: { style: 'thin' },
-		// 	},
-		// };
-
-		// const downloadStyle = {
-		// 	font: { bold: true, sz: 14 },
-		// 	fill: { fgColor: { rgb: '8CB181' } },
-		// };
-
 		const linkStyle = {
 			font: { color: { rgb: '0000FF' }, underline: true },
-			// border: {
-			// 	left: { style: 'thin' },
-			// },
-		};
-
-		const cellStyle = {
-			// border: {
-			// 	top: { style: 'thin' },
-			// 	bottom: { style: 'thin' },
-			// 	left: { style: 'thin' },
-			// 	right: { style: 'thin' },
-			// },
 		};
 
 		const titleStyle = {
@@ -280,21 +250,6 @@ function App() {
 					{ v: '', s: '' },
 				]);
 
-				// Объединяем ячейки для заголовка сервиса
-				// ws['!merges'] = [
-				// 	...(ws['!merges'] || []),
-				// 	{ s: { c: 0, r: acc.length - 1 }, e: { c: 4, r: acc.length - 1 } }, // A{n}:E{n} (вставляем название сервиса в строке {n})
-				// ];
-
-				// Добавляем заголовки таблицы для слоев
-				// acc.push([
-				// 	{ v: 'Название слоя', s: headerStyle },
-				// 	{ v: 'Ссылка', s: headerStyle },
-				// 	{ v: 'Вчерашняя дата', s: headerStyle },
-				// 	{ v: 'Актуальная дата', s: headerStyle },
-				// 	{ v: 'Скачать geojson', s: downloadStyle },
-				// ]);
-
 				// Добавляем данные для каждого слоя с расхождением в датах
 				mismatchedLayers.forEach((layer) => {
 					const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
@@ -305,15 +260,13 @@ function App() {
 					const geojsonUrl = `http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
 
 					acc.push([
-						{ v: layer.name || 'Без названия', s: cellStyle }, // Название слоя
-						{ v: geojsonUrl, s: cellStyle }, // Код слоя
+						{ v: layer.name || 'Без названия' }, // Название слоя
+						{ v: geojsonUrl }, // Код слоя
 						{
 							v: convertTimestampToDate(yesterdayLayer?.timestamp, layer.type),
-							s: cellStyle,
 						}, // Вчерашняя дата
 						{
 							v: convertTimestampToDate(layer.timestamp, layer.type),
-							s: cellStyle,
 						}, // Актуальная дата
 						{ f: `HYPERLINK("${geojsonUrl}", "Скачать")`, s: linkStyle }, // Формируем ссылку для скачивания
 					]);
@@ -507,70 +460,74 @@ function App() {
 										</tr>
 									</thead>
 
-									{mapsData[mapKey].map((layer) => {
-										const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
-											(yesterdayLayer) => yesterdayLayer.code === layer.code
-										);
-										const downloadUrl = `http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
+									{(isFiltered ? filteredMapsData : mapsData)[mapKey].map(
+										(layer) => {
+											const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
+												(yesterdayLayer) => yesterdayLayer.code === layer.code
+											);
+											const downloadUrl = `http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
 
-										return (
-											<tbody key={layer.id || `${mapKey}-${layer.code}`}>
-												<tr
-													className={
-														checkForMismatch(layer, yesterdayLayer)
-															? 'highlight-row'
-															: ''
-													}
-												>
-													<td>{layer.name || 'Без названия'}</td>
-													<td
-														className={layer.type === 'folder' ? 'folder' : ''}
-													>
-														{layer.code}
-													</td>
-													<td
+											return (
+												<tbody key={layer.id || `${mapKey}-${layer.code}`}>
+													<tr
 														className={
-															!yesterdayLayer?.timestamp &&
-															layer.type !== 'folder'
-																? 'time-null'
+															checkForMismatch(layer, yesterdayLayer)
+																? 'highlight-row'
 																: ''
 														}
 													>
-														{convertTimestampToDate(
-															yesterdayLayer?.timestamp,
-															layer.type
-														)}
-													</td>
-													<td
-														className={
-															!layer?.timestamp && layer.type !== 'folder'
-																? 'time-null'
-																: ''
-														}
-													>
-														{convertTimestampToDate(
-															layer.timestamp,
-															layer.type
-														)}
-													</td>
-													<td>
-														{layer.type === 'folder' ? (
-															''
-														) : (
-															<div className="link-wrapper">
-																<DownloadButton
-																	url={downloadUrl}
-																	fileName={`${
-																		layer.name || 'download'
-																	}.geojson`}
-																/>
-															</div>
-														)}
-													</td>
-												</tr>
-											</tbody>
-										);
-									})}
+														<td>{layer.name || 'Без названия'}</td>
+														<td
+															className={
+																layer.type === 'folder' ? 'folder' : ''
+															}
+														>
+															{layer.code}
+														</td>
+														<td
+															className={
+																!yesterdayLayer?.timestamp &&
+																layer.type !== 'folder'
+																	? 'time-null'
+																	: ''
+															}
+														>
+															{convertTimestampToDate(
+																yesterdayLayer?.timestamp,
+																layer.type
+															)}
+														</td>
+														<td
+															className={
+																!layer?.timestamp && layer.type !== 'folder'
+																	? 'time-null'
+																	: ''
+															}
+														>
+															{convertTimestampToDate(
+																layer.timestamp,
+																layer.type
+															)}
+														</td>
+														<td>
+															{layer.type === 'folder' ? (
+																''
+															) : (
+																<div className="link-wrapper">
+																	<DownloadButton
+																		url={downloadUrl}
+																		fileName={`${
+																			layer.name || 'download'
+																		}.geojson`}
+																	/>
+																</div>
+															)}
+														</td>
+													</tr>
+												</tbody>
+											);
+										}
+									)}
 								</table>
 							</div>
 						</details>
