@@ -24,6 +24,7 @@ function App() {
 	const [progress, setProgress] = useState(0);
 	const [filteredMapsData, setFilteredMapsData] = useState({});
 	const [isFiltered, setIsFiltered] = useState(false);
+	const [isFilteredOurs, setIsFilteredOurs] = useState(false);
 	const [loading, setLoading] = useState(true); // Объединено состояние загрузки
 
 	const today = new Date().toISOString().split('T')[0];
@@ -109,6 +110,24 @@ function App() {
 				? 'none'
 				: 'asc';
 
+		// Если порядок "none", сбрасываем данные на оригинальные
+		if (nextOrder === 'none') {
+			if (isFiltered) {
+				setFilteredMapsData((prev) => ({
+					...prev,
+					[mapKey]: [...originalMapsData[mapKey]],
+				}));
+			} else {
+				setMapsData((prev) => ({
+					...prev,
+					[mapKey]: [...originalMapsData[mapKey]],
+				}));
+			}
+			// Обновляем состояние сортировки
+			setSortOrders((prev) => ({ ...prev, [mapKey]: nextOrder }));
+			return;
+		}
+
 		// Определяем, по какому значению сортировать (сегодня или вчера)
 		const getTimestamp = (layer) => {
 			if (sortBy === 'today') return layer.timestamp;
@@ -121,30 +140,28 @@ function App() {
 		// Используем фильтрованные данные, если фильтр активен, иначе оригинальные
 		let layersToSort = isFiltered
 			? [...filteredMapsData[mapKey]]
-			: [...originalMapsData[mapKey]];
+			: [...mapsData[mapKey]];
 
-		if (nextOrder !== 'none') {
-			// Если сортировка не сброшена, сортируем
-			layersToSort.sort((a, b) => {
-				const aTimestamp = getTimestamp(a);
-				const bTimestamp = getTimestamp(b);
-				if (!aTimestamp) return 1;
-				if (!bTimestamp) return -1;
-				return nextOrder === 'asc'
-					? aTimestamp - bTimestamp
-					: bTimestamp - aTimestamp;
-			});
-		}
+		// Сортировка, если nextOrder не сброшен
+		layersToSort.sort((a, b) => {
+			const aTimestamp = getTimestamp(a);
+			const bTimestamp = getTimestamp(b);
+			if (!aTimestamp) return 1;
+			if (!bTimestamp) return -1;
+			return nextOrder === 'asc'
+				? aTimestamp - bTimestamp
+				: bTimestamp - aTimestamp;
+		});
 
-		// Обновляем состояние сортировки
-		setSortOrders((prev) => ({ ...prev, [mapKey]: nextOrder }));
-
-		// Обновляем данные после сортировки для правильного состояния
+		// Обновляем данные после сортировки
 		if (isFiltered) {
 			setFilteredMapsData((prev) => ({ ...prev, [mapKey]: layersToSort }));
 		} else {
 			setMapsData((prev) => ({ ...prev, [mapKey]: layersToSort }));
 		}
+
+		// Обновляем состояние сортировки
+		setSortOrders((prev) => ({ ...prev, [mapKey]: nextOrder }));
 	};
 
 	const filterMapsData = () => {
@@ -164,8 +181,8 @@ function App() {
 		}, {});
 
 		setFilteredMapsData(filteredData);
-
 		setIsFiltered(true);
+		setIsFilteredOurs(false); // Сбрасываем состояние фильтра "наши слои"
 	};
 
 	const filterLayersByLinks = (layers, links, mapKey) => {
@@ -204,6 +221,7 @@ function App() {
 
 		setFilteredMapsData(filteredOursData);
 		setIsFiltered(true);
+		setIsFilteredOurs(true); // Устанавливаем состояние для фильтра "наши слои"
 	};
 
 	function exportToExcel() {
@@ -435,7 +453,8 @@ function App() {
 											<th>
 												<div className="wrapper-date">
 													<span>{displayText}&nbsp;&nbsp;&nbsp;</span>
-													{hasValidTimestamp &&
+													{!isFilteredOurs &&
+														hasValidTimestamp &&
 														yesterdayMapsData[mapKey]?.length > 2 && (
 															<button
 																className={`sort-icon ${sortOrders[mapKey]}`}
@@ -447,7 +466,8 @@ function App() {
 											<th>
 												<div className="wrapper-date">
 													<span>Актуальная дата</span>
-													{hasValidTimestamp &&
+													{!isFilteredOurs &&
+														hasValidTimestamp &&
 														mapsData[mapKey]?.length > 2 && (
 															<button
 																className={`sort-icon ${sortOrders[mapKey]}`}
