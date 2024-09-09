@@ -540,19 +540,24 @@ function App() {
 																	>
 																		Скачать
 																	</a>
-																	{/* <a
-																<a
-																	// href={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
-																	className="button"
-																>
-																	Загрузить в БД
-																</a> */}
-																	<DownloadButton
+
+																	<a
+																		className="button"
+																		onClick={() => {
+																			let result = confirm('Вы уверены?');
+																			console.log(result);
+																			result ? axios.get(`http://glavapu-services:3009/import/?schema=test_${mapKey}&url=http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1&layer_name=${layer.code}`).then(res=>alert(res.data)).catch(res=>alert(res.data)) :
+																			alert('отменено');
+																		}}
+																	>
+																		Загрузить в БД (test)
+																	</a>
+																	{/* <DownloadButton
 																		url={downloadUrl}
 																		fileName={`${
 																			layer.name || 'download'
 																		}.geojson`}
-																	/>
+																	/> */}
 																</div>
 															)}
 														</td>
