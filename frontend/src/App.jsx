@@ -534,6 +534,19 @@ function App() {
 																''
 															) : (
 																<div className="link-wrapper">
+																	<a
+																		href={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
+																		className="button"
+																	>
+																		Скачать
+																	</a>
+																	{/* <a
+																<a
+																	// href={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
+																	className="button"
+																>
+																	Загрузить в БД
+																</a> */}
 																	<DownloadButton
 																		url={downloadUrl}
 																		fileName={`${
