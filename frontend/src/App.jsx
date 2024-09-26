@@ -558,12 +558,12 @@ function App() {
 																	>
 																		Загрузить в БД (test)
 																	</a>
-																	{/* <DownloadButton
+																	<DownloadButton
 																		url={downloadUrl}
 																		fileName={`${
 																			layer.name || 'download'
 																		}.geojson`}
-																	/> */}
+																	/>
 																</div>
 															)}
 														</td>
