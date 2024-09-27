@@ -19,6 +19,10 @@ h1 {
 	text-align: center;
 }
 
+h2 {
+	font-size: 1.3rem;
+}
+
 p {
 	font-size: 18px;
 	color: #444;
@@ -76,6 +80,14 @@ td.folder {
 
 .highlight-row td {
 	background-color: hsla(0, 100%, 50%, 0.11);
+}
+
+.service-button-wrapper {
+	display: flex;
+	flex-wrap: nowrap;
+	justify-content: center;
+	align-items: center;
+	gap: 20px;
 }
 
 .highlight-accordion .accordion-header {
@@ -214,30 +226,50 @@ a:hover {
 		-4px -4px 8px rgba(255, 255, 255, 0.7);
 	transition: box-shadow 0.2s ease, transform 0.2s ease;
 	user-select: none;
-}
 
-.sort-button:hover {
-	color: #242424;
-	box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.3),
-		-6px -6px 12px rgba(255, 255, 255, 0.7);
-}
+	&:hover {
+		color: #242424;
+		box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.3),
+			-6px -6px 12px rgba(255, 255, 255, 0.7);
+		transform: scale(105%);
+	}
 
-.sort-button:active {
-	box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
-		-2px -2px 4px rgba(255, 255, 255, 0.7);
-	background: linear-gradient(145deg, #e6e6e6, #ffffff);
+	&:active {
+		box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3),
+			-2px -2px 4px rgba(255, 255, 255, 0.7);
+		background: linear-gradient(145deg, #e6e6e6, #ffffff);
+		transform: scale(100%);
+	}
 }
 
 .download {
 	background: linear-gradient(145deg, #eaffeb, #cce2ce);
+
+	&:hover {
+		color: #0d5808;
+		transform: scale(105%);
+	}
+
+	&:active {
+		transform: scale(100%);
+		background: linear-gradient(145deg, #cce2ce, #eaffeb);
+	}
 }
 
-.download:hover {
-	color: #0d5808;
-}
+.export-service {
+	white-space: nowrap;
+	font-size: 0.8rem;
+	box-shadow: 4px 4px 8px rgba(0, 0, 0, 0.3),
+		-2px -2px 4px rgba(255, 255, 255, 0.4);
 
-.download:active {
-	background: linear-gradient(145deg, #cce2ce, #eaffeb);
+	&:hover {
+		box-shadow: none;
+		transform: scale(105%);
+	}
+
+	&:active {
+		transform: scale(100%);
+	}
 }
 
 .ours {
@@ -395,7 +427,6 @@ button:disabled {
 	gap: 10px;
 }
 
-
 /* Обертка для календаря */
 .date-picker-wrapper {
 	position: relative;
@@ -405,7 +436,7 @@ button:disabled {
 }
 
 /* Стили для input[type="date"] */
-.date-picker-wrapper input[type="date"] {
+.date-picker-wrapper input[type='date'] {
 	padding: 8px 12px;
 	border-radius: 8px;
 	border: 1px solid #ddd;
@@ -418,7 +449,7 @@ button:disabled {
 }
 
 /* Стили для фокуса на input[type="date"] */
-.date-picker-wrapper input[type="date"]:focus {
+.date-picker-wrapper input[type='date']:focus {
 	border-color: #4a78c7;
 	box-shadow: 0 0 4px rgba(74, 120, 199, 0.3);
 	outline: none;

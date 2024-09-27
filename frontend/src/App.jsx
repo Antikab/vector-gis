@@ -438,7 +438,17 @@ function App() {
 								}`}
 							>
 								<h2>{serviceName}</h2>
-								<span className="accordion-indicator"></span>
+								<div className="service-button-wrapper">
+									{!isFiltered && (
+										<button
+											className="sort-button download export-service"
+											onClick={exportToExcel}
+										>
+											Скачать Excel
+										</button>
+									)}
+									<span className="accordion-indicator"></span>
+								</div>
 							</summary>
 							<div className="accordion-content">
 								<table>
