@@ -10,6 +10,9 @@ import {
 	extractServiceNumber,
 	getServiceName,
 	checkForMismatch,
+	filterLayersWithMismatch,
+	filterMapsDataByMismatch,
+	filterLayersByLinks,
 	convertTimestampToDate,
 	sortKeys,
 } from './components/utils';
@@ -164,34 +167,18 @@ function App() {
 		setSortOrders((prev) => ({ ...prev, [mapKey]: nextOrder }));
 	};
 
+	// Основная функция фильтрации данных карт
 	const filterMapsData = () => {
-		const filteredData = Object.keys(mapsData).reduce((acc, mapKey) => {
-			const hasMismatch = mapsData[mapKey].some((layer) => {
-				const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
-					(yesterdayLayer) => yesterdayLayer.code === layer.code
-				);
-
-				return checkForMismatch(layer, yesterdayLayer);
-			});
-
-			if (hasMismatch) {
-				acc[mapKey] = mapsData[mapKey];
-			}
-			return acc;
-		}, {});
+		const filteredData = filterMapsDataByMismatch(mapsData, yesterdayMapsData);
 
 		setFilteredMapsData(filteredData);
 		setIsFiltered(true);
 		setIsFilteredOurs(false); // Сбрасываем состояние фильтра "наши слои"
+
+		console.log('filteredData', filteredData);
 	};
 
-	const filterLayersByLinks = (layers, links, mapKey) => {
-		return layers.filter((layer) => {
-			const geojsonUrl = `http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
-			return links.includes(geojsonUrl);
-		});
-	};
-
+	// Фильтрация "наших слоев"
 	const filterOursMapsData = () => {
 		const filteredOursData = Object.keys(mapsData).reduce((acc, mapKey) => {
 			const serviceName = getServiceName(mapKey, serviceNames);
@@ -203,13 +190,10 @@ function App() {
 				const layers = mapsData[mapKey] || [];
 				const layersInLinks = filterLayersByLinks(layers, links, mapKey);
 				// Проверяем на расхождения
-				const matchingLayers = layersInLinks.filter((layer) => {
-					const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
-						(yesterdayLayer) => yesterdayLayer.code === layer.code
-					);
-
-					return checkForMismatch(layer, yesterdayLayer);
-				});
+				const matchingLayers = filterLayersWithMismatch(
+					layersInLinks,
+					yesterdayMapsData[mapKey]
+				);
 
 				if (matchingLayers.length > 0) {
 					acc[mapKey] = matchingLayers;
@@ -222,9 +206,10 @@ function App() {
 		setFilteredMapsData(filteredOursData);
 		setIsFiltered(true);
 		setIsFilteredOurs(true); // Устанавливаем состояние для фильтра "наши слои"
+		console.log('filteredOursData', filteredOursData);
 	};
 
-	function exportToExcel() {
+	function exportToExcel(mapKey = null) {
 		// Создаем новый Workbook
 		const wb = XLSX.utils.book_new();
 
@@ -240,19 +225,27 @@ function App() {
 			fill: { fgColor: { rgb: 'D3D3D3' } },
 		};
 
-		// Перебираем все сервисы и слои, чтобы добавить их в таблицу
-		const sheetData = Object.keys(filteredMapsData).reduce(
-			(acc, mapKey, index, arr) => {
-				// Фильтруем только те слои, у которых есть расхождение в датах
-				const mismatchedLayers = filteredMapsData[mapKey].filter((layer) => {
-					const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
-						(yesterdayLayer) => yesterdayLayer.code === layer.code
-					);
-					return checkForMismatch(layer, yesterdayLayer);
-				});
+		// Определяем, какие сервисы экспортировать: все или один конкретный
+		const servicesToExport = mapKey
+			? { [mapKey]: mapsData[mapKey] || [] }
+			: filteredMapsData;
 
-				// Если нет слоев с расхождением, пропускаем этот сервис
-				if (mismatchedLayers.length === 0) {
+		// Перебираем сервисы и их слои для добавления в таблицу
+		const sheetData = Object.keys(servicesToExport).reduce(
+			(acc, mapKey, index, arr) => {
+				// Если выбран отдельный сервис (mapKey передан), берем все слои
+				const layers = mapKey
+					? servicesToExport[mapKey] // Все слои для конкретного сервиса
+					: servicesToExport[mapKey].filter((layer) => {
+							// Для всех сервисов фильтруем только слои с расхождениями
+							const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
+								(yesterdayLayer) => yesterdayLayer.code === layer.code
+							);
+							return checkForMismatch(layer, yesterdayLayer);
+					  });
+
+				// Если нет слоев (ни расхождений, ни обычных), пропускаем сервис
+				if (layers.length === 0) {
 					return acc;
 				}
 
@@ -261,15 +254,15 @@ function App() {
 
 				// Добавляем название сервиса как заголовок
 				acc.push([
-					{ v: serviceName, s: titleStyle }, // Применяем titleStyle к названию сервиса
+					{ v: serviceName, s: titleStyle },
 					{ v: '', s: '' },
 					{ v: '', s: '' },
 					{ v: '', s: '' },
 					{ v: '', s: '' },
 				]);
 
-				// Добавляем данные для каждого слоя с расхождением в датах
-				mismatchedLayers.forEach((layer) => {
+				// Добавляем данные для каждого слоя (все или с расхождением)
+				layers.forEach((layer) => {
 					const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
 						(yesterdayLayer) => yesterdayLayer.code === layer.code
 					);
@@ -278,19 +271,19 @@ function App() {
 					const geojsonUrl = `http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
 
 					acc.push([
-						{ v: layer.name || 'Без названия' }, // Название слоя
-						{ v: geojsonUrl }, // Код слоя
+						{ v: layer.name || 'Без названия' },
+						{ v: geojsonUrl || 'Без ссылки' },
 						{
 							v: convertTimestampToDate(yesterdayLayer?.timestamp, layer.type),
-						}, // Вчерашняя дата
+						},
 						{
 							v: convertTimestampToDate(layer.timestamp, layer.type),
-						}, // Актуальная дата
-						{ f: `HYPERLINK("${geojsonUrl}", "Скачать")`, s: linkStyle }, // Формируем ссылку для скачивания
+						},
+						{ f: `HYPERLINK("${geojsonUrl}", "Скачать")`, s: linkStyle },
 					]);
 				});
 
-				// Добавляем пустую строку для разделения сервисов, если это не последний сервис
+				// Добавляем пустые строки для разделения сервисов
 				if (index < arr.length - 1) {
 					acc.push([], [], []);
 				}
@@ -303,24 +296,30 @@ function App() {
 		// Добавляем данные в лист
 		XLSX.utils.sheet_add_aoa(ws, sheetData);
 
-		const rowHeight = 20; // Устанавливаем высоту для каждой строки
+		// Устанавливаем высоту строк
+		const rowHeight = 20;
 		ws['!rows'] = sheetData.map(() => ({ hpx: rowHeight }));
 
-		// Применение стилей к колонкам
+		// Устанавливаем ширину колонок
 		const wsCols = [
-			{ wch: 83 }, // Ширина для колонки "Название слоя"
-			{ wch: 120 }, // Ширина для колонки "Название кода"
-			{ wch: 25 }, // Ширина для колонки "Вчерашняя дата"
-			{ wch: 25 }, // Ширина для колонки "Актуальная дата"
-			{ wch: 20 }, // Ширина для колонки "Скачать geojson"
+			{ wch: 83 },
+			{ wch: 120 },
+			{ wch: 25 },
+			{ wch: 25 },
+			{ wch: 20 },
 		];
 		ws['!cols'] = wsCols;
 
 		// Добавляем лист в Workbook
 		XLSX.utils.book_append_sheet(wb, ws, 'Filtered Services');
 
-		// Генерация Excel файла и выгрузка
-		XLSX.writeFile(wb, 'filtered_services.xlsx');
+		// Определяем имя файла
+		const filename = mapKey
+			? `${getServiceName(mapKey, serviceNames)}.xlsx`
+			: 'filtered_services.xlsx';
+
+		// Генерируем и скачиваем Excel-файл
+		XLSX.writeFile(wb, filename);
 	}
 
 	if (loading) {
@@ -375,7 +374,7 @@ function App() {
 				{isFiltered && (
 					<button
 						className="sort-button download"
-						onClick={exportToExcel}
+						onClick={() => exportToExcel(null)}
 					>
 						Скачать Excel
 					</button>
@@ -442,7 +441,7 @@ function App() {
 									{!isFiltered && (
 										<button
 											className="sort-button download export-service"
-											onClick={exportToExcel}
+											onClick={() => exportToExcel(mapKey)}
 										>
 											Скачать Excel
 										</button>
@@ -463,7 +462,7 @@ function App() {
 											<th>
 												<div className="wrapper-date">
 													<span>{displayText}&nbsp;&nbsp;&nbsp;</span>
-													{!isFilteredOurs &&
+													{!isFiltered &&
 														hasValidTimestamp &&
 														yesterdayMapsData[mapKey]?.length > 2 && (
 															<button
@@ -476,7 +475,7 @@ function App() {
 											<th>
 												<div className="wrapper-date">
 													<span>Актуальная дата</span>
-													{!isFilteredOurs &&
+													{!isFiltered &&
 														hasValidTimestamp &&
 														mapsData[mapKey]?.length > 2 && (
 															<button
