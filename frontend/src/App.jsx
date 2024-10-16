@@ -46,6 +46,8 @@ function App() {
 		}
 	};
 
+
+
 	const fetchData = async () => {
 		try {
 			await simulateProgress();
