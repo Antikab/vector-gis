@@ -49,7 +49,7 @@ function App() {
 	const fetchData = async () => {
 		try {
 			await simulateProgress();
-			const response = await axios.get('http://localhost:3009/todayCache');
+			const response = await axios.get('http://localhost:3010/todayCache');
 			const sortedKeys = sortKeys(
 				Object.keys(response.data),
 				extractServiceNumber
@@ -70,7 +70,7 @@ function App() {
 	const fetchYesterdayData = async () => {
 		try {
 			await simulateProgress();
-			const response = await axios.get('http://localhost:3009/yesterdayCache');
+			const response = await axios.get('http://localhost:3010/yesterdayCache');
 			setYesterdayMapsData(response.data);
 		} catch (error) {
 			setError('Ошибка загрузки данных');
@@ -83,7 +83,7 @@ function App() {
 		try {
 			await simulateProgress();
 			const response = await axios.get(
-				`http://localhost:3009/getCacheByDate/${selectedDate}`
+				`http://localhost:3010/getCacheByDate/${selectedDate}`
 			);
 			setYesterdayMapsData(response.data);
 		} catch (error) {
@@ -266,17 +266,31 @@ function App() {
 					// Формируем URL для ссылки
 					const geojsonUrl = `http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
 
-					acc.push([
-						{ v: layer.name || 'Без названия' },
-						{ v: geojsonUrl || 'Без ссылки' },
-						{
-							v: convertTimestampToDate(yesterdayLayer?.timestamp, layer.type),
-						},
-						{
-							v: convertTimestampToDate(layer.timestamp, layer.type),
-						},
-						{ f: `HYPERLINK("${geojsonUrl}", "Скачать")`, s: linkStyle },
-					]);
+					if (/folder/i.test(layer.code)) {
+						// Если это папка, добавляем данные без ссылки и дат
+						acc.push([
+							{ v: layer.name || 'Без названия' },
+							{ v: 'папка' },
+							{ v: '' }, // Пустая ячейка для timestamp
+							{ v: '' }, // Пустая ячейка для timestamp
+							{ v: '' }, // Пустая ячейка для ссылки
+						]);
+					} else {
+						acc.push([
+							{ v: layer.name || 'Без названия' },
+							{ v: geojsonUrl || 'Без ссылки' },
+							{
+								v: convertTimestampToDate(
+									yesterdayLayer?.timestamp,
+									layer.type
+								),
+							},
+							{
+								v: convertTimestampToDate(layer?.timestamp, layer.type),
+							},
+							{ f: `HYPERLINK("${geojsonUrl}", "Скачать")`, s: linkStyle },
+						]);
+					}
 				});
 
 				// Добавляем пустые строки для разделения сервисов
@@ -554,7 +568,7 @@ function App() {
 																			result
 																				? axios
 																						.get(
-																							`http://localhost:3009/import/?schema=srv_${mapKey}&url=http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1&layer_name=${layer.code}`
+																							`http://localhost:3010/import/?schema=srv_${mapKey}&url=http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1&layer_name=${layer.code}`
 																						)
 																						.then((res) => alert(res.data))
 																						.catch((res) => alert(res.data))
