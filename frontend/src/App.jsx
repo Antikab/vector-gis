@@ -5,7 +5,7 @@ import * as XLSX from 'xlsx-js-style';
 // import { testData, testYesterdayData } from './components/testData';
 import serviceNames from './components/serviceNames';
 import serviceNamesOurs from './components/serviceNamesOurs';
-import DownloadButton from './components/DownloadButton';
+// import DownloadButton from './components/DownloadButton';
 import {
 	extractServiceNumber,
 	getServiceName,
@@ -19,6 +19,8 @@ import {
 import links from './components/links';
 
 function App() {
+	const apiUrl = import.meta.env.VITE_API_BASE_URL;
+	
 	const [mapsData, setMapsData] = useState({});
 	const [originalMapsData, setOriginalMapsData] = useState({});
 	const [yesterdayMapsData, setYesterdayMapsData] = useState({});
@@ -51,7 +53,7 @@ function App() {
 	const fetchData = async () => {
 		try {
 			await simulateProgress();
-			const response = await axios.get('http://localhost:3010/todayCache');
+			const response = await axios.get(`${apiUrl}/todayCache`);
 			const sortedKeys = sortKeys(
 				Object.keys(response.data),
 				extractServiceNumber
@@ -72,7 +74,7 @@ function App() {
 	const fetchYesterdayData = async () => {
 		try {
 			await simulateProgress();
-			const response = await axios.get('http://localhost:3010/yesterdayCache');
+			const response = await axios.get(`${apiUrl}/yesterdayCache`);
 			setYesterdayMapsData(response.data);
 		} catch (error) {
 			setError('Ошибка загрузки данных');
@@ -85,7 +87,7 @@ function App() {
 		try {
 			await simulateProgress();
 			const response = await axios.get(
-				`http://localhost:3010/getCacheByDate/${selectedDate}`
+				`${apiUrl}/getCacheByDate/${selectedDate}`
 			);
 			setYesterdayMapsData(response.data);
 		} catch (error) {
@@ -506,7 +508,7 @@ function App() {
 											const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
 												(yesterdayLayer) => yesterdayLayer.code === layer.code
 											);
-											const downloadUrl = `http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
+											// const downloadUrl = `http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
 
 											return (
 												<tbody key={layer.id || `${mapKey}-${layer.code}`}>
@@ -562,7 +564,7 @@ function App() {
 																		Скачать
 																	</a>
 
-																	<a
+																	{/* <a
 																		className="button"
 																		onClick={() => {
 																			let result = confirm('Вы уверены?');
@@ -570,7 +572,7 @@ function App() {
 																			result
 																				? axios
 																						.get(
-																							`http://localhost:3010/import/?schema=srv_${mapKey}&url=http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1&layer_name=${layer.code}`
+																							`${apiUrl}/import/?schema=srv_${mapKey}&url=http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1&layer_name=${layer.code}`
 																						)
 																						.then((res) => alert(res.data))
 																						.catch((res) => alert(res.data))
@@ -579,7 +581,7 @@ function App() {
 																	>
 																		Загрузить в БД
 																	</a>
-																	{/* <DownloadButton
+																	<DownloadButton
 																		url={downloadUrl}
 																		fileName={`${
 																			layer.name || 'download'
