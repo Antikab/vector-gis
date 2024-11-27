@@ -86,7 +86,7 @@ const filterMapsDataByMismatch = (data, yesterdayData) => {
 // Принимает массив слоев, ссылки и ключ карты, фильтрует слои по их соответствию с переданными ссылками.
 const filterLayersByLinks = (layers, links, mapKey) => {
 	return layers.filter((layer) => {
-		const geojsonUrl = `http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}//?format=geojson&mka_srs=1`;
+		const geojsonUrl = `http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
 		return links.includes(geojsonUrl);
 	});
 };

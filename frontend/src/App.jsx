@@ -477,7 +477,7 @@ function App() {
 											<th>
 												<div className="wrapper-date">
 													<span>{displayText}&nbsp;&nbsp;&nbsp;</span>
-													{!isFiltered &&
+													{!isFilteredOurs &&
 														hasValidTimestamp &&
 														yesterdayMapsData[mapKey]?.length > 2 && (
 															<button
@@ -490,7 +490,7 @@ function App() {
 											<th>
 												<div className="wrapper-date">
 													<span>Актуальная дата</span>
-													{!isFiltered &&
+													{!isFilteredOurs &&
 														hasValidTimestamp &&
 														mapsData[mapKey]?.length > 2 && (
 															<button
