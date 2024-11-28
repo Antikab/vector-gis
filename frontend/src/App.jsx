@@ -21,7 +21,7 @@ import links from './components/links';
 
 function App() {
 	const apiUrl = import.meta.env.VITE_API_BASE_URL;
-	
+
 	const [mapsData, setMapsData] = useState({});
 	const [originalMapsData, setOriginalMapsData] = useState({});
 	const [yesterdayMapsData, setYesterdayMapsData] = useState({});
@@ -48,8 +48,6 @@ function App() {
 			setProgress(simulatedProgress);
 		}
 	};
-
-
 
 	const fetchData = async () => {
 		try {
