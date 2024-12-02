@@ -267,7 +267,7 @@ function App() {
 					);
 
 					// Формируем URL для ссылки
-					const geojsonUrl = `http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
+					const geojsonUrl = `https://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
 
 					if (/folder/i.test(layer.code)) {
 						// Если это папка, добавляем данные без ссылки и дат
@@ -359,7 +359,7 @@ function App() {
 				{' '}
 				Информация о слоях в{' '}
 				<a
-					href="http://vector.mka.mos.ru/gis/"
+					href="https://vector.mka.mos.ru/gis/"
 					target="_blank"
 					rel="noopener noreferrer"
 				>
@@ -507,7 +507,7 @@ function App() {
 											const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
 												(yesterdayLayer) => yesterdayLayer.code === layer.code
 											);
-											// const downloadUrl = `http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
+											// const downloadUrl = `https://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
 
 											return (
 												<tbody key={layer.id || `${mapKey}-${layer.code}`}>
@@ -557,7 +557,7 @@ function App() {
 															) : (
 																<div className="link-wrapper">
 																	<a
-																		href={`http://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
+																		href={`https://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
 																		className="button"
 																	>
 																		Скачать
