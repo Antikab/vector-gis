@@ -225,9 +225,12 @@ function App() {
 		};
 
 		// Определяем, какие сервисы экспортировать: все или один конкретный
-		const servicesToExport = mapKey
-			? { [mapKey]: mapsData[mapKey] || [] }
-			: filteredMapsData;
+		const servicesToExport =
+			mapKey !== null
+				? { [mapKey]: mapsData[mapKey] || [] }
+				: isFiltered
+				? filteredMapsData
+				: mapsData;
 
 		// Перебираем сервисы и их слои для добавления в таблицу
 		const sheetData = Object.keys(servicesToExport).reduce(
@@ -381,6 +384,15 @@ function App() {
 						onClick={filterOursMapsData}
 					>
 						Измененные наши слои
+					</button>
+				)}
+
+				{!isFiltered && (
+					<button
+						className="sort-button download"
+						onClick={() => exportToExcel(null)}
+					>
+						Скачать Excel
 					</button>
 				)}
 
