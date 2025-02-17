@@ -32,6 +32,7 @@ function App() {
 	const [isFiltered, setIsFiltered] = useState(false);
 	const [isFilteredOurs, setIsFilteredOurs] = useState(false);
 	const [loading, setLoading] = useState(true); // Объединено состояние загрузки
+	const [token, setToken] = useState('');
 
 	const today = new Date().toISOString().split('T')[0];
 	const [date, setDate] = useState('');
@@ -95,13 +96,30 @@ function App() {
 		}
 	};
 
+	// Функция для получения токена с сервера
+	const fetchToken = async () => {
+		try {
+			const response = await axios.get('http://glavapu-services:3009/get-token');
+			setToken(response.data.token);
+		} catch (error) {
+			console.error('Ошибка при получении токена:', error);
+		}
+	};
+
 	useEffect(() => {
+		fetchToken();
 		const fetchAllData = async () => {
 			await Promise.all([fetchData(), fetchYesterdayData()]);
 			setLoading(false);
 		};
 		fetchAllData();
 	}, []);
+
+	// Генерация ссылки для скачивания с токеном
+	const generateDownloadLink = (mapKey, layerCode) => {
+		if (!token) return ''; // Если токен еще не получен, возвращаем пустую строку
+		return `https://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layerCode}/export/?format=geojson&mka_srs=1&token=${token}`;
+	};
 
 	const handleSort = (mapKey, sortBy) => {
 		// Определяем следующий порядок сортировки
@@ -270,7 +288,7 @@ function App() {
 					);
 
 					// Формируем URL для ссылки
-					const geojsonUrl = `https://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
+					const geojsonUrl = `${generateDownloadLink(mapKey, layer.code)}`;
 
 					if (/folder/i.test(layer.code)) {
 						// Если это папка, добавляем данные без ссылки и дат
@@ -519,7 +537,10 @@ function App() {
 											const yesterdayLayer = yesterdayMapsData[mapKey]?.find(
 												(yesterdayLayer) => yesterdayLayer.code === layer.code
 											);
-											// const downloadUrl = `https://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`;
+											const downloadUrl = `${generateDownloadLink(
+												mapKey,
+												layer.code
+											)}`;
 
 											return (
 												<tbody key={layer.id || `${mapKey}-${layer.code}`}>
@@ -569,7 +590,7 @@ function App() {
 															) : (
 																<div className="link-wrapper">
 																	<a
-																		href={`https://vector.mka.mos.ru/api/2.8/orbis/${mapKey}/layers/${layer.code}/export/?format=geojson&mka_srs=1`}
+																		href={downloadUrl} // Генерация ссылки с токеном
 																		className="button"
 																	>
 																		Скачать
